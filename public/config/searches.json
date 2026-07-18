@@ -1,0 +1,39 @@
+{
+  "searches": [
+    {
+      "id": "trafo",
+      "label": "Transformadores (TRAFO)",
+      "type": "layer",
+      "url": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/REP/CNELEPN/MapServer/9",
+      "searchField": "TRAFO",
+      "operator": "LIKE",
+      "caseInsensitive": true,
+      "outFields": ["TRAFO", "ALIMENTADORID", "OBJECTID"],
+      "displayField": "TRAFO",
+      "returnGeometry": true,
+      "suggestions": true,
+      "zoomScale": 2000
+    },
+    {
+      "id": "punto_carga_por_consumidor",
+      "label": "Punto de Carga (por Conexion Consumidor)",
+      "type": "relatedTable",
+      "source": {
+        "url": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/REP/CNELEPN/MapServer/42",
+        "searchField": "CODIGOUNICO",
+        "operator": "LIKE",
+        "caseInsensitive": true
+      },
+      "relation": {
+        "mode": "relationshipId",
+        "relationshipId": 0,
+        "targetLayerUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/REP/CNELEPN/MapServer/40",
+        "keyField": "CODIGOUNICO",
+        "targetKeyField": "CODIGOUNICO"
+      },
+      "outFields": ["CODIGOUNICO"],
+      "returnGeometry": true,
+      "zoomScale": 1500
+    }
+  ]
+}

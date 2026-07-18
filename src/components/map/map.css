@@ -1,0 +1,10 @@
+.map-view {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.map-view .esri-view-surface:focus {
+  outline: none;
+}

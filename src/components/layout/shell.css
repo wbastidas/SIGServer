@@ -1,0 +1,140 @@
+.app-shell {
+  height: 100vh;
+  width: 100vw;
+}
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-inline-end: 1rem;
+}
+
+.nav-username {
+  font-size: 0.85rem;
+  color: var(--calcite-color-text-2);
+}
+
+.tool-shell-panel {
+  --calcite-shell-panel-width: 360px;
+  --calcite-shell-panel-max-width: 90vw;
+}
+
+.tool-panel-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.tool-panel-header {
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--calcite-color-border-3);
+}
+
+.tool-panel-body {
+  flex: 1;
+  overflow: auto;
+  padding: 1rem;
+}
+
+.map-region {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.map-controls {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 5;
+}
+
+/* Utilidades comunes de paneles */
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.result-item {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--calcite-color-border-3);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.result-item:hover {
+  background: var(--calcite-color-foreground-2);
+}
+
+.muted {
+  color: var(--calcite-color-text-3);
+  font-size: 0.8rem;
+}
+
+.selection-table-wrapper {
+  overflow: auto;
+  max-height: 45vh;
+  border: 1px solid var(--calcite-color-border-3);
+  border-radius: 4px;
+}
+
+.selection-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.78rem;
+}
+
+.selection-table th,
+.selection-table td {
+  border-bottom: 1px solid var(--calcite-color-border-3);
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.selection-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--calcite-color-foreground-2);
+}
+
+.selection-table tbody tr {
+  cursor: pointer;
+}
+
+.selection-table tbody tr:hover {
+  background: var(--calcite-color-foreground-2);
+}
+
+@media (max-width: 640px) {
+  .tool-shell-panel {
+    --calcite-shell-panel-width: 100vw;
+  }
+  .nav-username {
+    display: none;
+  }
+}

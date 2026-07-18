@@ -1,0 +1,26 @@
+{
+  "popups": [
+    {
+      "layerId": 9,
+      "title": "Transformador {TRAFO}",
+      "fields": [
+        { "name": "TRAFO", "label": "Codigo TRAFO" },
+        { "name": "ALIMENTADORID", "label": "Alimentador" },
+        { "name": "OBJECTID", "label": "ID interno" }
+      ],
+      "related": [
+        { "mode": "relationshipId", "relationshipId": 0, "label": "Consumidores asociados" }
+      ],
+      "streetView": true
+    },
+    {
+      "layerId": 42,
+      "title": "Conexion Consumidor {CODIGOUNICO}",
+      "fields": [
+        { "name": "CODIGOUNICO", "label": "Codigo Unico" }
+      ],
+      "related": [],
+      "streetView": false
+    }
+  ]
+}

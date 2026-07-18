@@ -1,0 +1,19 @@
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--calcite-sans-family, 'Avenir Next', 'Segoe UI', sans-serif);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* El popup del SDK, la leyenda y demas heredan el tema Calcite. */
+:root {
+  --sig-accent: #ff8000;
+}

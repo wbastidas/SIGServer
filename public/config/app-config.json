@@ -1,0 +1,46 @@
+{
+  "app": {
+    "title": "Visor de Redes Electricas",
+    "subtitle": "CNEL EP",
+    "defaultLocale": "es-EC",
+    "defaultTheme": "light"
+  },
+  "map": {
+    "basemapUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/REP/CartografiaN/MapServer",
+    "basemapType": "tiled",
+    "operationalServiceUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/REP/CNELEPN/MapServer",
+    "operationalMode": "mapimage",
+    "featureSublayerIds": [9],
+    "spatialReferenceWkid": 32717,
+    "initialExtent": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 },
+    "initialCenter": { "longitude": -79.9, "latitude": -2.19 },
+    "initialZoom": 12,
+    "visibleLayerIds": [9, 42],
+    "minScale": 0,
+    "maxScale": 0
+  },
+  "goto": {
+    "allowedInputSR": [32717, 4326],
+    "defaultInputSR": 32717,
+    "markerColor": [255, 128, 0]
+  },
+  "filters": [
+    { "layerId": 9, "field": "ALIMENTADORID", "label": "Alimentador", "allowMultiple": true }
+  ],
+  "measure": {
+    "linearUnit": "meters",
+    "areaUnit": "square-meters"
+  },
+  "print": {
+    "printServiceUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+  },
+  "streetView": {
+    "enabled": true,
+    "googleApiKeyRef": "GOOGLE_MAPS_KEY"
+  },
+  "auth": {
+    "tokenExpirationMinutes": 60,
+    "arcgisServerSecured": false,
+    "apiBaseUrl": ""
+  }
+}
