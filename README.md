@@ -26,6 +26,12 @@ desplegarse como sitio estático en **IIS**.
 > **CORS:** el ArcGIS Server debe permitir el origen del visor, o bien publicarse
 > el visor tras el mismo dominio / proxy (ver §5).
 
+## Documentación
+
+- [Instalación y configuración en Windows](docs/INSTALACION-WINDOWS.md) — paso a paso (dev + IIS).
+- [Manual de usuario (interfaz gráfica)](docs/MANUAL-USUARIO.md) — cómo interactuar.
+- [Arquitectura y módulos](docs/ARQUITECTURA.md) — detalle técnico interno.
+
 ## 2. Puesta en marcha (desarrollo)
 
 ```bash
