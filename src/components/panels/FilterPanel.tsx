@@ -18,6 +18,7 @@ import {
   CalciteSelect,
 } from '@esri/calcite-components-react';
 import type { FilterConfig } from '@/types/config';
+import { buildValueWhere } from '@/services/queryUtils';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
 
@@ -63,14 +64,10 @@ export function FilterPanel() {
     };
   }, [filter, operationalUrl]);
 
-  const whereClause = useMemo(() => {
-    if (!filter || selectedValues.length === 0) return '';
-    if (selectedValues.length === 1) {
-      return `${filter.field} = '${selectedValues[0].replace(/'/g, "''")}'`;
-    }
-    const list = selectedValues.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
-    return `${filter.field} IN (${list})`;
-  }, [filter, selectedValues]);
+  const whereClause = useMemo(
+    () => (filter ? buildValueWhere(filter.field, selectedValues) : ''),
+    [filter, selectedValues],
+  );
 
   function toggleValue(value: string) {
     setSelectedValues((prev) => {

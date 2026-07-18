@@ -6,6 +6,9 @@ import Graphic from '@arcgis/core/Graphic';
 import type MapView from '@arcgis/core/views/MapView';
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import type Geometry from '@arcgis/core/geometry/Geometry';
+import { featuresToCsv } from './queryUtils';
+
+export { featuresToCsv };
 
 /** Seleccion por clic: devuelve los graficos de FeatureLayers bajo el puntero. */
 export async function selectByClick(
@@ -40,19 +43,4 @@ export async function selectByGeometry(
     }
   }
   return all;
-}
-
-/** Exporta una lista de graficos a CSV (RF-SEL-05). */
-export function featuresToCsv(features: Graphic[]): string {
-  if (features.length === 0) return '';
-  const fields = Array.from(
-    features.reduce((set, f) => {
-      Object.keys(f.attributes ?? {}).forEach((k) => set.add(k));
-      return set;
-    }, new Set<string>()),
-  );
-  const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const header = fields.map(escape).join(',');
-  const rows = features.map((f) => fields.map((k) => escape(f.attributes[k])).join(','));
-  return [header, ...rows].join('\r\n');
 }

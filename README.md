@@ -55,6 +55,18 @@ npm run build             # genera dist/
 Los assets del SDK de ArcGIS y de Calcite se **copian localmente** al `dist/`
 (no se usa CDN), para un despliegue 100% autocontenido y offline.
 
+### 3.1 Scripts y calidad
+
+```bash
+npm run typecheck   # TypeScript sin emitir
+npm run lint        # ESLint
+npm test            # Pruebas unitarias (Vitest) de la logica pura
+npm run build       # Build de produccion
+```
+
+Hay integración continua en `.github/workflows/ci.yml` que ejecuta typecheck,
+lint, pruebas y build en cada push/PR a `main`.
+
 ## 4. Configuración externa (sin recompilar)
 
 Toda URL de servicio, capa, campo, SR, plantilla y búsqueda vive en JSON externo

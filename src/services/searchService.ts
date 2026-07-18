@@ -13,6 +13,7 @@ import type {
   RelatedTableSearch,
   SearchDefinition,
 } from '@/types/config';
+import { buildWhere, escapeLike } from './queryUtils';
 
 const MAX_RESULTS = 50;
 
@@ -37,21 +38,6 @@ function getLayer(url: string): FeatureLayer {
     layerCache.set(url, layer);
   }
   return layer;
-}
-
-function escapeLike(value: string): string {
-  return value.replace(/'/g, "''");
-}
-
-function buildWhere(field: string, operator: string, value: string, caseInsensitive?: boolean): string {
-  const safe = escapeLike(value);
-  if (operator === 'LIKE') {
-    if (caseInsensitive) {
-      return `UPPER(${field}) LIKE UPPER('%${safe}%')`;
-    }
-    return `${field} LIKE '%${safe}%'`;
-  }
-  return `${field} = '${safe}'`;
 }
 
 /** RF-SRC-02: busqueda directa sobre una capa espacial. */
