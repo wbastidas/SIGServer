@@ -28,6 +28,7 @@ desplegarse como sitio estático en **IIS**.
 
 ## Documentación
 
+- [Manual visual navegable (HTML)](docs/manual.html) — instalación, configuración e interfaz en una sola página (ábralo en el navegador).
 - [Instalación y configuración en Windows](docs/INSTALACION-WINDOWS.md) — paso a paso (dev + IIS).
 - [Manual de usuario (interfaz gráfica)](docs/MANUAL-USUARIO.md) — cómo interactuar.
 - [Arquitectura y módulos](docs/ARQUITECTURA.md) — detalle técnico interno.
