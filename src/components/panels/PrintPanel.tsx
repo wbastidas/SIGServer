@@ -8,10 +8,12 @@ import { ArcgisPrint } from '@arcgis/map-components-react';
 import { CalciteNotice } from '@esri/calcite-components-react';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
+import { useI18n } from '@/i18n/useI18n';
 
 export function PrintPanel() {
   const printCfg = useConfigStore((s) => s.config?.app.print);
   const view = useMapStore((s) => s.view);
+  const { t } = useI18n();
   const printRef = useRef<any>(null);
 
   useEffect(() => {
@@ -27,9 +29,7 @@ export function PrintPanel() {
   if (!printCfg?.printServiceUrl) {
     return (
       <CalciteNotice open kind="warning" icon scale="s">
-        <div slot="message">
-          No hay servicio de impresion configurado (print.printServiceUrl en app-config.json).
-        </div>
+        <div slot="message">{t('print.noService')}</div>
       </CalciteNotice>
     );
   }
@@ -37,10 +37,7 @@ export function PrintPanel() {
   return (
     <div className="panel-section">
       <CalciteNotice open icon="print" scale="s">
-        <div slot="message">
-          Elija plantilla, formato (PDF/PNG/JPG), titulo y escala. La leyenda de
-          las capas visibles se incluye segun soporte del servicio.
-        </div>
+        <div slot="message">{t('print.help')}</div>
       </CalciteNotice>
       <ArcgisPrint ref={printRef} />
     </div>

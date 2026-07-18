@@ -21,11 +21,13 @@ import type { FilterConfig } from '@/types/config';
 import { buildValueWhere } from '@/services/queryUtils';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
+import { useI18n } from '@/i18n/useI18n';
 
 export function FilterPanel() {
   const filters = useConfigStore((s) => s.config?.app.filters ?? []);
   const operationalUrl = useConfigStore((s) => s.config?.app.map.operationalServiceUrl);
   const map = useMapStore((s) => s.map);
+  const { t } = useI18n();
 
   const [selectedFilterIdx, setSelectedFilterIdx] = useState(0);
   const [values, setValues] = useState<string[]>([]);
@@ -114,15 +116,15 @@ export function FilterPanel() {
   }
 
   if (filters.length === 0) {
-    return <p className="muted">No hay filtros configurados en app-config.json.</p>;
+    return <p className="muted">{t('filter.noConfig')}</p>;
   }
 
   return (
     <div className="panel-section">
       <CalciteLabel>
-        Capa / campo
+        {t('filter.layerField')}
         <CalciteSelect
-          label="Filtro"
+          label={t('filter.layerField')}
           value={String(selectedFilterIdx)}
           onCalciteSelectChange={(e: any) => {
             setSelectedFilterIdx(Number(e.target.value));
@@ -138,8 +140,8 @@ export function FilterPanel() {
       </CalciteLabel>
 
       <p className="muted">
-        {filter?.allowMultiple ? 'Seleccion multiple (IN)' : 'Seleccion individual'} ·{' '}
-        {loading ? 'cargando valores...' : `${values.length} valores`}
+        {filter?.allowMultiple ? t('filter.multiple') : t('filter.single')} ·{' '}
+        {loading ? t('filter.loadingValues') : t('filter.valuesCount', { n: values.length })}
       </p>
 
       {error && (
@@ -168,10 +170,10 @@ export function FilterPanel() {
           disabled={selectedValues.length === 0 || undefined}
           onClick={applyFilter}
         >
-          Aplicar
+          {t('common.apply')}
         </CalciteButton>
         <CalciteButton appearance="outline" kind="neutral" iconStart="reset" onClick={clearFilter}>
-          Limpiar
+          {t('common.clear')}
         </CalciteButton>
       </div>
     </div>

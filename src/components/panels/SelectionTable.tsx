@@ -18,6 +18,7 @@ import {
 import { useMapStore } from '@/store/useMapStore';
 import { selectByClick, selectByGeometry, featuresToCsv } from '@/services/selectionService';
 import { highlightAndZoom } from '@/services/highlightService';
+import { useI18n } from '@/i18n/useI18n';
 
 type Mode = 'click' | 'rectangle' | 'polygon';
 
@@ -28,6 +29,7 @@ export function SelectionTable() {
   const sketchLayer = useMapStore((s) => s.sketchLayer);
   const selected = useMapStore((s) => s.selectedFeatures);
   const setSelected = useMapStore((s) => s.setSelectedFeatures);
+  const { t } = useI18n();
 
   const [mode, setMode] = useState<Mode>('click');
   const svmRef = useRef<SketchViewModel | null>(null);
@@ -111,20 +113,19 @@ export function SelectionTable() {
         onCalciteSegmentedControlChange={(e: any) => setMode(e.target.value)}
       >
         <CalciteSegmentedControlItem value="click" checked={mode === 'click' || undefined}>
-          Clic
+          {t('selection.click')}
         </CalciteSegmentedControlItem>
         <CalciteSegmentedControlItem value="rectangle" checked={mode === 'rectangle' || undefined}>
-          Rectangulo
+          {t('selection.rectangle')}
         </CalciteSegmentedControlItem>
         <CalciteSegmentedControlItem value="polygon" checked={mode === 'polygon' || undefined}>
-          Poligono
+          {t('selection.polygon')}
         </CalciteSegmentedControlItem>
       </CalciteSegmentedControl>
 
       <p className="muted">
-        {selected.length} elemento(s) seleccionado(s).{' '}
-        {featureLayers.length === 0 &&
-          'Nota: configure capas como FeatureLayer (map.operationalMode) para seleccion espacial.'}
+        {t('selection.count', { n: selected.length })}{' '}
+        {featureLayers.length === 0 && t('selection.hintNoFeature')}
       </p>
 
       <div className="panel-actions">
@@ -135,7 +136,7 @@ export function SelectionTable() {
           disabled={selected.length === 0 || undefined}
           onClick={exportCsv}
         >
-          CSV
+          {t('selection.csv')}
         </CalciteButton>
         <CalciteButton
           appearance="outline"
@@ -144,7 +145,7 @@ export function SelectionTable() {
           disabled={selected.length === 0 || undefined}
           onClick={clearSelection}
         >
-          Limpiar
+          {t('common.clear')}
         </CalciteButton>
       </div>
 
@@ -160,7 +161,7 @@ export function SelectionTable() {
             </thead>
             <tbody>
               {selected.map((f, i) => (
-                <tr key={i} onClick={() => focusFeature(f)} title="Ir al elemento">
+                <tr key={i} onClick={() => focusFeature(f)} title={t('selection.goTo')}>
                   {columns.map((c) => (
                     <td key={c}>{String(f.attributes?.[c] ?? '')}</td>
                   ))}

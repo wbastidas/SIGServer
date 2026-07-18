@@ -9,6 +9,7 @@ import {
 } from '@esri/calcite-components-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useConfigStore } from '@/store/useConfigStore';
+import { useI18n } from '@/i18n/useI18n';
 import './login.css';
 
 export function LoginPage() {
@@ -18,6 +19,7 @@ export function LoginPage() {
   const loading = useAuthStore((s) => s.loading);
   const error = useAuthStore((s) => s.error);
   const config = useConfigStore((s) => s.config);
+  const { t } = useI18n();
 
   const appTitle = config?.app.app.title ?? 'Visor de Redes Electricas';
   const subtitle = config?.app.app.subtitle ?? '';
@@ -39,7 +41,7 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="login-form">
           <CalciteLabel>
-            Usuario
+            {t('login.user')}
             <CalciteInput
               value={username}
               type="text"
@@ -50,7 +52,7 @@ export function LoginPage() {
           </CalciteLabel>
 
           <CalciteLabel>
-            Contrasena
+            {t('login.password')}
             <CalciteInput
               value={password}
               type="password"
@@ -72,14 +74,11 @@ export function LoginPage() {
             loading={loading || undefined}
             disabled={(!username || !password) || undefined}
           >
-            Ingresar
+            {t('login.submit')}
           </CalciteButton>
 
           {!authCfg?.apiBaseUrl && !import.meta.env.VITE_AUTH_API_URL && (
-            <p className="login-hint">
-              Modo demo: use <strong>admin / admin</strong>. Configure un backend de
-              autenticacion para produccion.
-            </p>
+            <p className="login-hint">{t('login.demoHint')}</p>
           )}
         </form>
       </CalciteCard>

@@ -7,11 +7,13 @@ import { useEffect, useRef } from 'react';
 import { ArcgisSketch } from '@arcgis/map-components-react';
 import { CalciteNotice } from '@esri/calcite-components-react';
 import { useMapStore } from '@/store/useMapStore';
+import { useI18n } from '@/i18n/useI18n';
 
 export function DrawTools() {
   const sketchRef = useRef<any>(null);
   const view = useMapStore((s) => s.view);
   const sketchLayer = useMapStore((s) => s.sketchLayer);
+  const { t } = useI18n();
 
   useEffect(() => {
     const el = sketchRef.current;
@@ -27,10 +29,7 @@ export function DrawTools() {
   return (
     <div className="panel-section">
       <CalciteNotice open icon="pencil" scale="s">
-        <div slot="message">
-          Dibuje puntos, lineas, poligonos, rectangulos y circulos. Puede mover,
-          editar y borrar geometrias. Use "Limpiar todo" en la herramienta.
-        </div>
+        <div slot="message">{t('draw.help')}</div>
       </CalciteNotice>
       <ArcgisSketch ref={sketchRef} />
     </div>

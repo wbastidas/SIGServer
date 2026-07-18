@@ -12,6 +12,7 @@
     "operationalMode": "mapimage",
     "featureSublayerIds": [9],
     "spatialReferenceWkid": 32717,
+    "geometryServiceUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/Utilities/Geometry/GeometryServer",
     "initialExtent": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 },
     "initialCenter": { "longitude": -79.9, "latitude": -2.19 },
     "initialZoom": 12,

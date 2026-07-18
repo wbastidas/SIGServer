@@ -33,6 +33,13 @@ export function MapContainer() {
     if (!config || !containerRef.current) return;
 
     const appCfg = config.app;
+
+    // Evita la dependencia externa a AGOL: usa el GeometryServer del ArcGIS Server
+    // propio para reproyecciones que requieran transformacion del lado servidor.
+    if (appCfg.map.geometryServiceUrl) {
+      esriConfig.geometryServiceUrl = appCfg.map.geometryServiceUrl;
+    }
+
     const built = buildMap(appCfg, config.popups);
     const spatialReference = new SpatialReference({ wkid: appCfg.map.spatialReferenceWkid });
 
@@ -71,6 +78,7 @@ export function MapContainer() {
       setMapContext({
         view,
         map: built.map,
+        basemapLayer: built.basemapLayer,
         graphicsLayer: built.graphicsLayer,
         sketchLayer: built.sketchLayer,
         featureLayers: built.featureLayers,

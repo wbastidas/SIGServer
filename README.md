@@ -52,8 +52,12 @@ npm run build             # genera dist/
 3. Requisitos del servidor: módulo **URL Rewrite**; si usa el backend/proxy,
    también **Application Request Routing (ARR)** con proxy habilitado.
 
-Los assets del SDK de ArcGIS y de Calcite se **copian localmente** al `dist/`
-(no se usa CDN), para un despliegue 100% autocontenido y offline.
+Los assets del SDK de ArcGIS, de los componentes web (`@arcgis/map-components`) y de
+Calcite se **copian localmente** al `dist/` (no se usa CDN `js.arcgis.com`), para un
+despliegue 100% autocontenido y offline. Además, `map.geometryServiceUrl` apunta al
+GeometryServer del propio ArcGIS Server para que ninguna reproyeccion recurra al
+servicio de arcgisonline (AGOL) — verificado: sin peticiones a `js.arcgis.com` ni a
+`arcgisonline.com`.
 
 ### 3.1 Scripts y calidad
 
@@ -184,7 +188,9 @@ public/config/ app-config.json · searches.json · popups.json
 | RF-POP-01..04 | `popupTemplateFactory`, `popups.json` (relacionados + acción Street View) |
 | RF-GSV-01..04 | `StreetViewPanel`, `googleStreetView`, `useStreetViewStore` |
 | RF-PRT-01..04 | `PrintPanel` (`arcgis-print`) |
-| RF-ARQ-01 | Store central + paneles desacoplados |
+| RF-ARQ-01 | Store central + paneles desacoplados + `ErrorBoundary` por módulo |
+| §3.2 BasemapConfig | `BasemapConfig` (visibilidad/opacidad del mapa base) |
+| §2.1/§2.2 · §10.7 (sin AGOL/CDN) | Assets del SDK, map-components y Calcite locales; `map.geometryServiceUrl` on-prem |
 | RNF-UX-01 | Tema claro/oscuro con conmutador (`useUiStore`, botón en la barra de navegación) |
 | RNF-UX-04 | i18n preparado (`src/i18n/`, hook `useI18n`, diccionario es-EC) |
 | RNF-PERF / SEC / CFG / IIS | Ver §8, §5, Calcite, `configLoader`, `web.config` |

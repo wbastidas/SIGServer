@@ -16,6 +16,7 @@ import {
 import { MapContainer } from '@/components/map/MapContainer';
 import { MapControls } from '@/components/map/MapControls';
 import { CoordinateConversion } from '@/components/map/CoordinateConversion';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { SearchPanel } from '@/components/panels/SearchPanel';
 import { LayerListPanel } from '@/components/panels/LayerListPanel';
 import { FilterPanel } from '@/components/panels/FilterPanel';
@@ -24,6 +25,7 @@ import { MeasureTools } from '@/components/panels/MeasureTools';
 import { PrintPanel } from '@/components/panels/PrintPanel';
 import { GoToXYPanel } from '@/components/panels/GoToXYPanel';
 import { SelectionTable } from '@/components/panels/SelectionTable';
+import { BasemapConfig } from '@/components/panels/BasemapConfig';
 import { StreetViewPanel } from '@/components/panels/StreetViewPanel';
 import { useMapStore, ActiveTool } from '@/store/useMapStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -43,6 +45,7 @@ interface ToolDef {
 const TOOLS: ToolDef[] = [
   { id: 'search', icon: 'search', toolKey: 'tool.search', panelKey: 'panel.search' },
   { id: 'layers', icon: 'layers', toolKey: 'tool.layers', panelKey: 'panel.layers' },
+  { id: 'basemap', icon: 'basemap', toolKey: 'tool.basemap', panelKey: 'panel.basemap' },
   { id: 'filter', icon: 'filter', toolKey: 'tool.filter', panelKey: 'panel.filter' },
   { id: 'selection', icon: 'select', toolKey: 'tool.selection', panelKey: 'panel.selection' },
   { id: 'draw', icon: 'pencil', toolKey: 'tool.draw', panelKey: 'panel.draw' },
@@ -71,7 +74,7 @@ export function AppShell() {
           slot="logo"
           heading={config?.app.app.title ?? 'Visor de Redes Electricas'}
           description={config?.app.app.subtitle}
-          icon="lightning-bolt"
+          icon="flash"
         />
         <div slot="content-end" className="nav-user">
           <span className="nav-username">{user?.displayName ?? user?.username}</span>
@@ -114,14 +117,17 @@ export function AppShell() {
           <div className="tool-panel-content">
             <div className="tool-panel-header">{activePanelKey ? t(activePanelKey) : ''}</div>
             <div className="tool-panel-body">
-              {activeTool === 'search' && <SearchPanel />}
-              {activeTool === 'layers' && <LayerListPanel />}
-              {activeTool === 'filter' && <FilterPanel />}
-              {activeTool === 'selection' && <SelectionTable />}
-              {activeTool === 'draw' && <DrawTools />}
-              {activeTool === 'measure' && <MeasureTools />}
-              {activeTool === 'goto' && <GoToXYPanel />}
-              {activeTool === 'print' && <PrintPanel />}
+              <ErrorBoundary key={activeTool} name={activePanelKey ? t(activePanelKey) : undefined}>
+                {activeTool === 'search' && <SearchPanel />}
+                {activeTool === 'layers' && <LayerListPanel />}
+                {activeTool === 'basemap' && <BasemapConfig />}
+                {activeTool === 'filter' && <FilterPanel />}
+                {activeTool === 'selection' && <SelectionTable />}
+                {activeTool === 'draw' && <DrawTools />}
+                {activeTool === 'measure' && <MeasureTools />}
+                {activeTool === 'goto' && <GoToXYPanel />}
+                {activeTool === 'print' && <PrintPanel />}
+              </ErrorBoundary>
             </div>
           </div>
         )}
@@ -133,7 +139,9 @@ export function AppShell() {
         <CoordinateConversion />
       </div>
 
-      <StreetViewPanel />
+      <ErrorBoundary name="Street View">
+        <StreetViewPanel />
+      </ErrorBoundary>
     </CalciteShell>
   );
 }

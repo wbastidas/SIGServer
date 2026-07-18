@@ -34,6 +34,14 @@ export interface MapConfig {
   featureSublayerIds?: number[];
   /** Sistema de referencia del mapa (RF-MAP-03). */
   spatialReferenceWkid: number;
+  /**
+   * URL de un GeometryServer del ArcGIS Server para reproyecciones que requieran
+   * transformacion de datum del lado servidor. Si se omite, el SDK usaria por
+   * defecto el servicio de arcgisonline (AGOL); definir esta URL evita esa
+   * dependencia externa (§2.1, §10.7). Ej.:
+   * https://…/arcgis/rest/services/Utilities/Geometry/GeometryServer
+   */
+  geometryServiceUrl?: string;
   /** Extent inicial en el SR del mapa. Si viene en ceros se ignora. */
   initialExtent?: Extent;
   /** Centro inicial en Lat/Long (fallback si no hay initialExtent). */

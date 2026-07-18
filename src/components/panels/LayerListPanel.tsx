@@ -10,6 +10,7 @@ import { ArcgisLayerList, ArcgisLegend } from '@arcgis/map-components-react';
 import { CalciteBlock, CalciteLabel, CalciteSlider } from '@esri/calcite-components-react';
 import { useBindView } from '@/components/common/useBindView';
 import { useMapStore } from '@/store/useMapStore';
+import { useI18n } from '@/i18n/useI18n';
 
 export function LayerListPanel() {
   const listRef = useRef<any>(null);
@@ -18,6 +19,7 @@ export function LayerListPanel() {
   useBindView(legendRef);
 
   const map = useMapStore((s) => s.map);
+  const { t } = useI18n();
   const [opacities, setOpacities] = useState<Record<string, number>>({});
 
   // Configura el layer list para mostrar controles de visibilidad de subcapas.
@@ -42,7 +44,7 @@ export function LayerListPanel() {
     <div className="panel-section">
       <ArcgisLayerList ref={listRef} />
 
-      <CalciteBlock heading="Opacidad por capa" open collapsible={false}>
+      <CalciteBlock heading={t('layers.opacity')} open collapsible={false}>
         {operational.map((layer: any) => (
           <CalciteLabel key={layer.id} layout="default">
             {layer.title ?? layer.id}
@@ -55,10 +57,10 @@ export function LayerListPanel() {
             />
           </CalciteLabel>
         ))}
-        {operational.length === 0 && <p className="muted">Cargando capas...</p>}
+        {operational.length === 0 && <p className="muted">{t('layers.loading')}</p>}
       </CalciteBlock>
 
-      <CalciteBlock heading="Leyenda" open collapsible>
+      <CalciteBlock heading={t('layers.legend')} open collapsible>
         <ArcgisLegend ref={legendRef} />
       </CalciteBlock>
     </div>

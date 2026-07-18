@@ -8,12 +8,14 @@ import type MapView from '@arcgis/core/views/MapView';
 import type EsriMap from '@arcgis/core/Map';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
+import type Layer from '@arcgis/core/layers/Layer';
 import type Graphic from '@arcgis/core/Graphic';
 
 /** Panel de herramienta activo en la barra lateral. */
 export type ActiveTool =
   | 'search'
   | 'layers'
+  | 'basemap'
   | 'filter'
   | 'draw'
   | 'measure'
@@ -25,6 +27,7 @@ export type ActiveTool =
 interface MapState {
   view: MapView | null;
   map: EsriMap | null;
+  basemapLayer: Layer | null;
   graphicsLayer: GraphicsLayer | null;
   sketchLayer: GraphicsLayer | null;
   featureLayers: FeatureLayer[];
@@ -36,6 +39,7 @@ interface MapState {
   setMapContext: (ctx: {
     view: MapView;
     map: EsriMap;
+    basemapLayer: Layer;
     graphicsLayer: GraphicsLayer;
     sketchLayer: GraphicsLayer;
     featureLayers: FeatureLayer[];
@@ -50,6 +54,7 @@ interface MapState {
 export const useMapStore = create<MapState>((set, get) => ({
   view: null,
   map: null,
+  basemapLayer: null,
   graphicsLayer: null,
   sketchLayer: null,
   featureLayers: [],
@@ -61,6 +66,7 @@ export const useMapStore = create<MapState>((set, get) => ({
     set({
       view: ctx.view,
       map: ctx.map,
+      basemapLayer: ctx.basemapLayer,
       graphicsLayer: ctx.graphicsLayer,
       sketchLayer: ctx.sketchLayer,
       featureLayers: ctx.featureLayers,
@@ -73,6 +79,7 @@ export const useMapStore = create<MapState>((set, get) => ({
     set({
       view: null,
       map: null,
+      basemapLayer: null,
       graphicsLayer: null,
       sketchLayer: null,
       featureLayers: [],

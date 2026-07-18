@@ -16,12 +16,14 @@ import {
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
 import { pointFromXY, pointFromLatLong } from '@/services/projectionService';
+import { useI18n } from '@/i18n/useI18n';
 
 export function GoToXYPanel() {
   const gotoCfg = useConfigStore((s) => s.config?.app.goto);
   const mapWkid = useConfigStore((s) => s.config?.app.map.spatialReferenceWkid);
   const view = useMapStore((s) => s.view);
   const graphicsLayer = useMapStore((s) => s.graphicsLayer);
+  const { t } = useI18n();
 
   const [inputWkid, setInputWkid] = useState<number>(gotoCfg?.defaultInputSR ?? mapWkid ?? 4326);
   const [x, setX] = useState('');
@@ -36,11 +38,11 @@ export function GoToXYPanel() {
     const nx = Number(x);
     const ny = Number(y);
     if (x === '' || y === '' || Number.isNaN(nx) || Number.isNaN(ny)) {
-      return { ok: false, msg: 'Ingrese coordenadas numericas validas.' };
+      return { ok: false, msg: t('goto.errNumeric') };
     }
     if (isLatLong) {
-      if (ny < -90 || ny > 90) return { ok: false, msg: 'Latitud fuera de rango (-90 a 90).' };
-      if (nx < -180 || nx > 180) return { ok: false, msg: 'Longitud fuera de rango (-180 a 180).' };
+      if (ny < -90 || ny > 90) return { ok: false, msg: t('goto.errLat') };
+      if (nx < -180 || nx > 180) return { ok: false, msg: t('goto.errLong') };
     }
     return { ok: true };
   }
@@ -76,7 +78,7 @@ export function GoToXYPanel() {
       );
       await view.goTo({ target: point, scale: 2000 });
     } catch (err) {
-      setError(`No se pudo navegar: ${(err as Error).message}`);
+      setError(t('goto.errNav', { msg: (err as Error).message }));
     } finally {
       setBusy(false);
     }
@@ -85,27 +87,27 @@ export function GoToXYPanel() {
   return (
     <div className="panel-section">
       <CalciteLabel>
-        Sistema de referencia de entrada
+        {t('goto.inputSR')}
         <CalciteSelect
-          label="SR de entrada"
+          label={t('goto.inputSR')}
           value={String(inputWkid)}
           onCalciteSelectChange={(e: any) => setInputWkid(Number(e.target.value))}
         >
           {allowed.map((wkid) => (
             <CalciteOption key={wkid} value={String(wkid)}>
-              {wkid === 4326 ? 'Lat/Long (WGS84 · 4326)' : `Proyectado (WKID ${wkid})`}
+              {wkid === 4326 ? t('goto.latlong') : t('goto.projected', { wkid })}
             </CalciteOption>
           ))}
         </CalciteSelect>
       </CalciteLabel>
 
       <CalciteLabel>
-        {isLatLong ? 'Longitud (X)' : 'X (Este)'}
+        {isLatLong ? t('goto.longitudeX') : t('goto.xEast')}
         <CalciteInputNumber value={x} onCalciteInputNumberInput={(e: any) => setX(e.target.value)} />
       </CalciteLabel>
 
       <CalciteLabel>
-        {isLatLong ? 'Latitud (Y)' : 'Y (Norte)'}
+        {isLatLong ? t('goto.latitudeY') : t('goto.yNorth')}
         <CalciteInputNumber value={y} onCalciteInputNumberInput={(e: any) => setY(e.target.value)} />
       </CalciteLabel>
 
@@ -117,7 +119,7 @@ export function GoToXYPanel() {
 
       <div className="panel-actions">
         <CalciteButton iconStart="pin" loading={busy || undefined} onClick={goTo}>
-          Ir a la ubicacion
+          {t('goto.go')}
         </CalciteButton>
         <CalciteButton
           appearance="outline"
@@ -129,7 +131,7 @@ export function GoToXYPanel() {
             graphicsLayer?.removeAll();
           }}
         >
-          Limpiar
+          {t('common.clear')}
         </CalciteButton>
       </div>
     </div>
