@@ -167,13 +167,15 @@ public/config/ app-config.json · searches.json · popups.json
 | RF-FIL-01..05 | `FilterPanel` (definitionExpression / featureEffect) |
 | RF-DRW-01..04 | `DrawTools` (`arcgis-sketch`, GraphicsLayer dedicado) |
 | RF-MSR-01..03 | `MeasureTools` (`arcgis-*-measurement-2d`) |
-| RF-GOTO-01..04 | `GoToXYPanel`, `projectionService` |
+| RF-GOTO-01..04 | `GoToXYPanel`, `projectionService`, `CoordinateConversion` (`arcgis-coordinate-conversion`) |
 | RF-SEL-01..05 | `SelectionTable`, `selectionService`, `highlightService` (CSV incluido) |
 | RF-POP-01..04 | `popupTemplateFactory`, `popups.json` (relacionados + acción Street View) |
 | RF-GSV-01..04 | `StreetViewPanel`, `googleStreetView`, `useStreetViewStore` |
 | RF-PRT-01..04 | `PrintPanel` (`arcgis-print`) |
 | RF-ARQ-01 | Store central + paneles desacoplados |
-| RNF-PERF / SEC / UX / CFG / IIS | Ver §8, §5, Calcite, `configLoader`, `web.config` |
+| RNF-UX-01 | Tema claro/oscuro con conmutador (`useUiStore`, botón en la barra de navegación) |
+| RNF-UX-04 | i18n preparado (`src/i18n/`, hook `useI18n`, diccionario es-EC) |
+| RNF-PERF / SEC / CFG / IIS | Ver §8, §5, Calcite, `configLoader`, `web.config` |
 
 ## 10. Fuera de alcance (versión inicial)
 

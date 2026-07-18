@@ -56,6 +56,14 @@
   z-index: 5;
 }
 
+.coordinate-conversion {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1rem;
+  z-index: 5;
+  max-width: 320px;
+}
+
 /* Utilidades comunes de paneles */
 .panel-section {
   display: flex;

@@ -15,6 +15,7 @@ import {
 } from '@esri/calcite-components-react';
 import { MapContainer } from '@/components/map/MapContainer';
 import { MapControls } from '@/components/map/MapControls';
+import { CoordinateConversion } from '@/components/map/CoordinateConversion';
 import { SearchPanel } from '@/components/panels/SearchPanel';
 import { LayerListPanel } from '@/components/panels/LayerListPanel';
 import { FilterPanel } from '@/components/panels/FilterPanel';
@@ -27,35 +28,28 @@ import { StreetViewPanel } from '@/components/panels/StreetViewPanel';
 import { useMapStore, ActiveTool } from '@/store/useMapStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useConfigStore } from '@/store/useConfigStore';
+import { useUiStore } from '@/store/useUiStore';
+import { useI18n } from '@/i18n/useI18n';
+import type { LocaleKey } from '@/i18n/strings';
 import './shell.css';
 
 interface ToolDef {
   id: Exclude<ActiveTool, null>;
   icon: string;
-  label: string;
+  toolKey: LocaleKey;
+  panelKey: LocaleKey;
 }
 
 const TOOLS: ToolDef[] = [
-  { id: 'search', icon: 'search', label: 'Buscar' },
-  { id: 'layers', icon: 'layers', label: 'Capas y leyenda' },
-  { id: 'filter', icon: 'filter', label: 'Filtros' },
-  { id: 'selection', icon: 'select', label: 'Seleccion / Tabla' },
-  { id: 'draw', icon: 'pencil', label: 'Dibujo' },
-  { id: 'measure', icon: 'measure', label: 'Medicion' },
-  { id: 'goto', icon: 'coordinate-system', label: 'Ir a XY / LatLong' },
-  { id: 'print', icon: 'print', label: 'Imprimir' },
+  { id: 'search', icon: 'search', toolKey: 'tool.search', panelKey: 'panel.search' },
+  { id: 'layers', icon: 'layers', toolKey: 'tool.layers', panelKey: 'panel.layers' },
+  { id: 'filter', icon: 'filter', toolKey: 'tool.filter', panelKey: 'panel.filter' },
+  { id: 'selection', icon: 'select', toolKey: 'tool.selection', panelKey: 'panel.selection' },
+  { id: 'draw', icon: 'pencil', toolKey: 'tool.draw', panelKey: 'panel.draw' },
+  { id: 'measure', icon: 'measure', toolKey: 'tool.measure', panelKey: 'panel.measure' },
+  { id: 'goto', icon: 'coordinate-system', toolKey: 'tool.goto', panelKey: 'panel.goto' },
+  { id: 'print', icon: 'print', toolKey: 'tool.print', panelKey: 'panel.print' },
 ];
-
-const PANEL_TITLES: Record<string, string> = {
-  search: 'Busqueda',
-  layers: 'Capas y leyenda',
-  filter: 'Filtros',
-  selection: 'Seleccion y tabla',
-  draw: 'Dibujo',
-  measure: 'Medicion',
-  goto: 'Ir a una ubicacion',
-  print: 'Impresion',
-};
 
 export function AppShell() {
   const activeTool = useMapStore((s) => s.activeTool);
@@ -63,7 +57,12 @@ export function AppShell() {
   const logout = useAuthStore((s) => s.logout);
   const user = useAuthStore((s) => s.session?.user);
   const config = useConfigStore((s) => s.config);
+  const theme = useUiStore((s) => s.theme);
+  const toggleTheme = useUiStore((s) => s.toggleTheme);
+  const { t } = useI18n();
   const [collapsed] = useState(false);
+
+  const activePanelKey = TOOLS.find((tool) => tool.id === activeTool)?.panelKey;
 
   return (
     <CalciteShell className="app-shell">
@@ -80,30 +79,40 @@ export function AppShell() {
             appearance="outline-fill"
             kind="neutral"
             scale="s"
+            iconStart={theme === 'dark' ? 'brightness' : 'moon'}
+            title={theme === 'dark' ? t('app.themeLight') : t('app.themeDark')}
+            onClick={toggleTheme}
+          >
+            {theme === 'dark' ? t('app.themeLight') : t('app.themeDark')}
+          </CalciteButton>
+          <CalciteButton
+            appearance="outline-fill"
+            kind="neutral"
+            scale="s"
             iconStart="sign-out"
             onClick={logout}
           >
-            Salir
+            {t('app.exit')}
           </CalciteButton>
         </div>
       </CalciteNavigation>
 
       <CalciteShellPanel slot="panel-start" collapsed={collapsed} className="tool-shell-panel">
         <CalciteActionBar slot="action-bar">
-          {TOOLS.map((t) => (
+          {TOOLS.map((tool) => (
             <CalciteAction
-              key={t.id}
-              text={t.label}
-              icon={t.icon}
-              active={activeTool === t.id || undefined}
-              onClick={() => toggleTool(t.id)}
+              key={tool.id}
+              text={t(tool.toolKey)}
+              icon={tool.icon}
+              active={activeTool === tool.id || undefined}
+              onClick={() => toggleTool(tool.id)}
             />
           ))}
         </CalciteActionBar>
 
         {activeTool && (
           <div className="tool-panel-content">
-            <div className="tool-panel-header">{PANEL_TITLES[activeTool]}</div>
+            <div className="tool-panel-header">{activePanelKey ? t(activePanelKey) : ''}</div>
             <div className="tool-panel-body">
               {activeTool === 'search' && <SearchPanel />}
               {activeTool === 'layers' && <LayerListPanel />}
@@ -121,6 +130,7 @@ export function AppShell() {
       <div className="map-region">
         <MapContainer />
         <MapControls />
+        <CoordinateConversion />
       </div>
 
       <StreetViewPanel />

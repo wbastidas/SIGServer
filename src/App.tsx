@@ -9,12 +9,15 @@ import { AuthGate } from '@/components/auth/AuthGate';
 import { AppShell } from '@/components/layout/AppShell';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useUiStore } from '@/store/useUiStore';
 import { initArcgisToken } from '@/services/arcgisTokenService';
 
 export function App() {
   const { config, loading, error, load } = useConfigStore();
   const initAuth = useAuthStore((s) => s.init);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const theme = useUiStore((s) => s.theme);
+  const setTheme = useUiStore((s) => s.setTheme);
 
   // Carga inicial de configuracion + restauracion de sesion.
   useEffect(() => {
@@ -22,12 +25,19 @@ export function App() {
     initAuth();
   }, [load, initAuth]);
 
-  // Aplica el tema (claro/oscuro) definido en la config (RNF-UX-01).
+  // Semilla del tema desde la config la primera vez (si el usuario no ha elegido).
   useEffect(() => {
-    const theme = config?.app.app.defaultTheme ?? 'light';
-    document.body.classList.toggle('calcite-mode-dark', theme === 'dark');
+    if (config && !localStorage.getItem('sig.theme')) {
+      setTheme(config.app.app.defaultTheme ?? 'light');
+    }
     document.documentElement.lang = config?.app.app.defaultLocale ?? 'es-EC';
-  }, [config]);
+  }, [config, setTheme]);
+
+  // Aplica el tema claro/oscuro a Calcite y a los componentes del SDK (RNF-UX-01).
+  useEffect(() => {
+    document.body.classList.toggle('calcite-mode-dark', theme === 'dark');
+    document.body.classList.toggle('calcite-mode-light', theme === 'light');
+  }, [theme]);
 
   // Token de ArcGIS Server (solo si los servicios estan securizados y hay backend).
   useEffect(() => {
