@@ -1,10 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { escapeLike, buildWhere, buildValueWhere, featuresToCsv } from './queryUtils';
+import { escapeLike, escapeHtml, buildWhere, buildValueWhere, featuresToCsv } from './queryUtils';
 
 describe('escapeLike', () => {
   it('duplica comillas simples para evitar inyeccion', () => {
     expect(escapeLike("O'Brien")).toBe("O''Brien");
     expect(escapeLike('sin comillas')).toBe('sin comillas');
+  });
+});
+
+describe('escapeHtml', () => {
+  it('escapa los caracteres especiales de HTML', () => {
+    expect(escapeHtml('<img src=x onerror=alert(1)>')).toBe(
+      '&lt;img src=x onerror=alert(1)&gt;',
+    );
+    expect(escapeHtml(`a & b "c" 'd'`)).toBe('a &amp; b &quot;c&quot; &#39;d&#39;');
+  });
+
+  it('tolera null/undefined y numeros', () => {
+    expect(escapeHtml(null)).toBe('');
+    expect(escapeHtml(undefined)).toBe('');
+    expect(escapeHtml(42)).toBe('42');
   });
 });
 

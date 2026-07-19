@@ -41,6 +41,19 @@ export function buildValueWhere(field: string, values: string[]): string {
   return `${field} IN (${list})`;
 }
 
+/**
+ * Escapa texto para interpolarlo en HTML (previene inyeccion via valores de
+ * atributos que vienen del servicio). Usado al construir contenido de popups.
+ */
+export function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /** Registro minimo con atributos, compatible con Graphic sin acoplar al SDK. */
 export interface AttributeBag {
   attributes?: Record<string, unknown> | null;

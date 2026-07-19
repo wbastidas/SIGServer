@@ -4,7 +4,7 @@
  * sugerencias opcionales (RF-SRC-07). Al seleccionar un resultado, el mapa hace
  * zoom/pan, resalta el elemento y abre su popup (RF-SRC-05).
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalciteButton,
   CalciteInputText,
@@ -39,11 +39,10 @@ export function SearchPanel() {
     [searches, selectedId],
   );
 
-  const suggestionsEnabled =
-    activeSearch &&
-    (activeSearch.type === 'layer'
-      ? activeSearch.suggestions
-      : activeSearch.suggestions);
+  const suggestionsEnabled = Boolean(activeSearch?.suggestions);
+
+  // Evita setState tras desmontar si el temporizador de sugerencias queda vivo.
+  useEffect(() => () => window.clearTimeout(suggestTimer.current), []);
 
   function onTermInput(value: string) {
     setTerm(value);

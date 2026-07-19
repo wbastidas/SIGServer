@@ -5,6 +5,7 @@
  */
 import { useEffect } from 'react';
 import { CalciteLoader, CalciteNotice } from '@esri/calcite-components-react';
+import { setLocale } from '@arcgis/core/intl';
 import { AuthGate } from '@/components/auth/AuthGate';
 import { AppShell } from '@/components/layout/AppShell';
 import { useConfigStore } from '@/store/useConfigStore';
@@ -16,6 +17,7 @@ export function App() {
   const { config, loading, error, load } = useConfigStore();
   const initAuth = useAuthStore((s) => s.init);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const session = useAuthStore((s) => s.session);
   const theme = useUiStore((s) => s.theme);
   const setTheme = useUiStore((s) => s.setTheme);
 
@@ -25,13 +27,31 @@ export function App() {
     initAuth();
   }, [load, initAuth]);
 
-  // Semilla del tema desde la config la primera vez (si el usuario no ha elegido).
+  // Semilla del tema desde la config la primera vez (si el usuario no ha elegido)
+  // y sincronizacion del idioma: html.lang + locale del SDK (leyenda, mediciones,
+  // impresion) siguen app.defaultLocale y no el idioma del navegador (RNF-UX-04).
   useEffect(() => {
-    if (config && !localStorage.getItem('sig.theme')) {
+    if (!config) return;
+    if (!localStorage.getItem('sig.theme')) {
       setTheme(config.app.app.defaultTheme ?? 'light');
     }
-    document.documentElement.lang = config?.app.app.defaultLocale ?? 'es-EC';
+    const locale = config.app.app.defaultLocale ?? 'es-EC';
+    document.documentElement.lang = locale;
+    setLocale(locale);
   }, [config, setTheme]);
+
+  // Cierre de sesion automatico al expirar el token (RF-AUTH-03): sin esto, una
+  // sesion vencida seguiria mostrando el visor hasta el siguiente re-render.
+  useEffect(() => {
+    if (!session) return;
+    const remaining = session.expiresAt - Date.now();
+    if (remaining <= 0) {
+      useAuthStore.getState().logout();
+      return;
+    }
+    const timer = window.setTimeout(() => useAuthStore.getState().logout(), remaining);
+    return () => window.clearTimeout(timer);
+  }, [session]);
 
   // Aplica el tema claro/oscuro a Calcite y a los componentes del SDK (RNF-UX-01).
   useEffect(() => {

@@ -54,12 +54,10 @@ export function MeasureTools() {
         </CalciteSegmentedControlItem>
       </CalciteSegmentedControl>
 
-      <div style={{ display: mode === 'distance' ? 'block' : 'none' }}>
-        <ArcgisDistanceMeasurement2d ref={distRef} />
-      </div>
-      <div style={{ display: mode === 'area' ? 'block' : 'none' }}>
-        <ArcgisAreaMeasurement2d ref={areaRef} />
-      </div>
+      {/* Solo se monta la herramienta activa: evita dos widgets de medicion
+          escuchando el mapa a la vez; cambiar de modo limpia la medicion previa. */}
+      {mode === 'distance' && <ArcgisDistanceMeasurement2d ref={distRef} />}
+      {mode === 'area' && <ArcgisAreaMeasurement2d ref={areaRef} />}
 
       <CalciteButton appearance="outline" kind="neutral" iconStart="trash" onClick={clear}>
         {t('measure.clear')}

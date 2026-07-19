@@ -6,6 +6,7 @@ import Graphic from '@arcgis/core/Graphic';
 import type MapView from '@arcgis/core/views/MapView';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type Geometry from '@arcgis/core/geometry/Geometry';
+import { escapeHtml } from './queryUtils';
 
 const HIGHLIGHT_POINT = {
   type: 'simple-marker' as const,
@@ -75,8 +76,9 @@ export async function highlightAndZoom(
     view.openPopup({
       location: geometry.type === 'point' ? (geometry as any) : geometry.extent?.center,
       title: options.popupTitle ?? 'Elemento',
+      // Los valores vienen del servicio: se escapan para no inyectar HTML.
       content: Object.entries(options.attributes)
-        .map(([k, v]) => `<b>${k}:</b> ${v}`)
+        .map(([k, v]) => `<b>${escapeHtml(k)}:</b> ${escapeHtml(v)}`)
         .join('<br/>'),
     });
   }

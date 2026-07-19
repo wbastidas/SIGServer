@@ -47,19 +47,26 @@ function createOperationalLayers(
       url: operationalServiceUrl,
       title: 'Redes electricas',
     });
-    // Visibilidad inicial por sublayer (RF-LYR-04). El resto de sublayers
-    // conservan su visibilidad por defecto del servicio.
-    if (visibleLayerIds && visibleLayerIds.length > 0) {
-      mil.when(() => {
-        mil.sublayers?.forEach((sub) => {
-          sub.visible = visibleLayerIds.includes(sub.id);
+    mil.when(() => {
+      const applyVisibility = !!visibleLayerIds && visibleLayerIds.length > 0;
+      // Recorre TODAS las sublayers (incluidas las anidadas en grupos):
+      // popups siempre (RF-POP-03); visibilidad solo si el JSON la define
+      // (RF-LYR-04), dejando los grupos con su visibilidad por defecto.
+      const walk = (subs?: __esri.Collection<__esri.Sublayer> | null) => {
+        subs?.forEach((sub) => {
+          const isGroup = !!sub.sublayers && sub.sublayers.length > 0;
           const popupCfg = popups.find((p) => p.layerId === sub.id);
           if (popupCfg) {
             sub.popupTemplate = buildPopupTemplate(popupCfg, cfg);
           }
+          if (applyVisibility && !isGroup) {
+            sub.visible = visibleLayerIds!.includes(sub.id);
+          }
+          walk(sub.sublayers);
         });
-      });
-    }
+      };
+      walk(mil.sublayers);
+    });
     operational.push(mil);
   }
 
