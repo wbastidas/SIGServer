@@ -9,6 +9,8 @@ export type LocaleKey =
   | 'app.exit'
   | 'app.themeLight'
   | 'app.themeDark'
+  | 'map.zoomIn'
+  | 'map.zoomOut'
   // Comunes
   | 'common.clear'
   | 'common.apply'
@@ -63,6 +65,21 @@ export type LocaleKey =
   | 'filter.loadingValues'
   | 'filter.valuesCount'
   | 'filter.noConfig'
+  | 'filter.values'
+  | 'filter.searchValues'
+  | 'filter.searchPlaceholder'
+  | 'filter.noMatches'
+  | 'filter.tooMany'
+  // Seleccion / tabla acoplada
+  | 'selection.layer'
+  | 'selection.dock'
+  | 'selection.hintClick'
+  | 'selection.hintDraw'
+  | 'selection.viewTable'
+  | 'selection.emptyHint'
+  | 'table.resize'
+  | 'selection.collapse'
+  | 'selection.expand'
   // Dibujo
   | 'draw.help'
   // Medicion
@@ -130,6 +147,8 @@ const esEC: Dictionary = {
   'app.exit': 'Salir',
   'app.themeLight': 'Claro',
   'app.themeDark': 'Oscuro',
+  'map.zoomIn': 'Acercar',
+  'map.zoomOut': 'Alejar',
 
   'common.clear': 'Limpiar',
   'common.apply': 'Aplicar',
@@ -185,6 +204,21 @@ const esEC: Dictionary = {
   'filter.loadingValues': 'cargando valores...',
   'filter.valuesCount': '{n} valores',
   'filter.noConfig': 'No hay filtros configurados en app-config.json.',
+  'filter.values': 'Valores',
+  'filter.searchValues': 'Buscar valor',
+  'filter.searchPlaceholder': 'Escriba para filtrar la lista...',
+  'filter.noMatches': 'Ningun valor coincide con la busqueda.',
+  'filter.tooMany': 'Mostrando los primeros 300 de {n}. Afine la busqueda.',
+
+  'selection.layer': 'Capa',
+  'selection.dock': 'Tabla',
+  'selection.hintClick': 'Haga clic sobre un elemento del mapa para seleccionarlo.',
+  'selection.hintDraw': 'Dibuje un area sobre el mapa para seleccionar los elementos que contiene.',
+  'selection.viewTable': 'Ver tabla',
+  'selection.emptyHint': 'Todavia no hay elementos seleccionados. Use la herramienta de seleccion sobre el mapa.',
+  'table.resize': 'Arrastre para cambiar la altura',
+  'selection.collapse': 'Contraer',
+  'selection.expand': 'Expandir',
 
   'draw.help':
     'Dibuje puntos, lineas, poligonos, rectangulos y circulos. Puede mover, editar y borrar geometrias. Use "Limpiar todo" en la herramienta.',
@@ -259,6 +293,8 @@ const enUS: Dictionary = {
   'app.exit': 'Sign out',
   'app.themeLight': 'Light',
   'app.themeDark': 'Dark',
+  'map.zoomIn': 'Zoom in',
+  'map.zoomOut': 'Zoom out',
 
   'common.clear': 'Clear',
   'common.apply': 'Apply',
@@ -313,6 +349,21 @@ const enUS: Dictionary = {
   'filter.loadingValues': 'loading values...',
   'filter.valuesCount': '{n} values',
   'filter.noConfig': 'No filters configured in app-config.json.',
+  'filter.values': 'Values',
+  'filter.searchValues': 'Search value',
+  'filter.searchPlaceholder': 'Type to filter the list...',
+  'filter.noMatches': 'No value matches the search.',
+  'filter.tooMany': 'Showing the first 300 of {n}. Refine the search.',
+
+  'selection.layer': 'Layer',
+  'selection.dock': 'Table',
+  'selection.hintClick': 'Click a feature on the map to select it.',
+  'selection.hintDraw': 'Draw an area on the map to select the features inside.',
+  'selection.viewTable': 'View table',
+  'selection.emptyHint': 'No features selected yet. Use the selection tool on the map.',
+  'table.resize': 'Drag to resize',
+  'selection.collapse': 'Collapse',
+  'selection.expand': 'Expand',
 
   'draw.help':
     'Draw points, lines, polygons, rectangles and circles. You can move, edit and delete geometries. Use "Clear all" in the tool.',

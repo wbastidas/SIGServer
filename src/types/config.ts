@@ -35,6 +35,16 @@ export interface MapConfig {
   /** Sistema de referencia del mapa (RF-MAP-03). */
   spatialReferenceWkid: number;
   /**
+   * Forzar el SR indicado aunque el mapa base sea una cache teselada.
+   *
+   * Una cache solo puede dibujarse en el SR de su propio esquema de teselas. Si
+   * se fuerza otro SR distinto, el basemap no carga, la vista nunca queda
+   * "ready" y el mapa deja de responder al zoom. Por eso el valor por defecto
+   * es `false`: con basemap teselado manda el SR de la cache. Ponga `true` solo
+   * si sabe que la cache esta publicada en `spatialReferenceWkid`.
+   */
+  forceSpatialReference?: boolean;
+  /**
    * URL de un GeometryServer del ArcGIS Server para reproyecciones que requieran
    * transformacion de datum del lado servidor. Si se omite, el SDK usaria por
    * defecto el servicio de arcgisonline (AGOL); definir esta URL evita esa
@@ -90,10 +100,24 @@ export interface AuthConfig {
   apiBaseUrl?: string;
 }
 
+/** Campo mostrado en la tabla de seleccion (RF-SEL-02). */
+export interface SelectionFieldConfig {
+  name: string;
+  label?: string;
+}
+
+export interface SelectionConfig {
+  /** Columnas a mostrar. Vacio = primeras columnas disponibles. */
+  fields: SelectionFieldConfig[];
+  /** Mostrar de que capa proviene cada elemento seleccionado. */
+  showLayerName?: boolean;
+}
+
 export interface AppConfig {
   app: AppMeta;
   map: MapConfig;
   goto: GotoConfig;
+  selection?: SelectionConfig;
   filters: FilterConfig[];
   measure: MeasureConfig;
   print: PrintConfig;

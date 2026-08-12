@@ -11,6 +11,12 @@ import type FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import type Layer from '@arcgis/core/layers/Layer';
 import type Graphic from '@arcgis/core/Graphic';
 
+/** Elementos seleccionados agrupados por la capa de la que provienen. */
+export interface SelectionGroup {
+  title: string;
+  features: Graphic[];
+}
+
 /** Panel de herramienta activo en la barra lateral. */
 export type ActiveTool =
   | 'search'
@@ -37,6 +43,8 @@ interface MapState {
 
   activeTool: ActiveTool;
   selectedFeatures: Graphic[];
+  /** Seleccion agrupada por capa: permite saber de que capa es cada elemento. */
+  selectionGroups: SelectionGroup[];
 
   setMapContext: (ctx: {
     view: MapView;
@@ -50,6 +58,8 @@ interface MapState {
   setActiveTool: (tool: ActiveTool) => void;
   toggleTool: (tool: ActiveTool) => void;
   setSelectedFeatures: (features: Graphic[]) => void;
+  setSelection: (groups: SelectionGroup[]) => void;
+  clearSelection: () => void;
   reset: () => void;
 }
 
@@ -63,6 +73,7 @@ export const useMapStore = create<MapState>((set, get) => ({
   ready: false,
   activeTool: 'layers',
   selectedFeatures: [],
+  selectionGroups: [],
 
   setMapContext: (ctx) =>
     set({
@@ -76,7 +87,14 @@ export const useMapStore = create<MapState>((set, get) => ({
   setReady: (ready) => set({ ready }),
   setActiveTool: (tool) => set({ activeTool: tool }),
   toggleTool: (tool) => set({ activeTool: get().activeTool === tool ? null : tool }),
-  setSelectedFeatures: (features) => set({ selectedFeatures: features }),
+  setSelectedFeatures: (features) =>
+    set({ selectedFeatures: features, selectionGroups: [{ title: '', features }] }),
+  setSelection: (groups) =>
+    set({
+      selectionGroups: groups,
+      selectedFeatures: groups.flatMap((g) => g.features),
+    }),
+  clearSelection: () => set({ selectionGroups: [], selectedFeatures: [] }),
   reset: () =>
     set({
       view: null,
@@ -87,5 +105,6 @@ export const useMapStore = create<MapState>((set, get) => ({
       featureLayers: [],
       ready: false,
       selectedFeatures: [],
+      selectionGroups: [],
     }),
 }));

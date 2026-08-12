@@ -94,6 +94,30 @@ function buildRelatedContent(
   });
 }
 
+/**
+ * Plantilla por defecto para capas sin configuracion en popups.json: muestra
+ * el nombre de la capa y todos sus campos. Sin esto, las subcapas no
+ * configuradas no abrian ningun popup al hacer clic (RF-POP-01).
+ */
+export function buildDefaultPopupTemplate(
+  layerTitle: string,
+  appCfg: AppConfig,
+): PopupTemplate {
+  const actions: ActionButton[] = [];
+  if (appCfg.streetView.enabled) {
+    actions.push(
+      new ActionButton({ id: STREET_VIEW_ACTION_ID, title: 'Street View', icon: 'road-sign' }),
+    );
+  }
+  return new PopupTemplate({
+    title: layerTitle,
+    outFields: ['*'],
+    // `fieldInfos` vacio hace que FieldsContent liste todos los campos del servicio.
+    content: [new FieldsContent()],
+    actions,
+  });
+}
+
 export function buildPopupTemplate(cfg: PopupLayerConfig, appCfg: AppConfig): PopupTemplate {
   const content: (FieldsContent | RelationshipContent | CustomContent)[] = [
     new FieldsContent({ fieldInfos: buildFieldInfos(cfg) }),

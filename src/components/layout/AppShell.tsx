@@ -24,10 +24,11 @@ import { DrawTools } from '@/components/panels/DrawTools';
 import { MeasureTools } from '@/components/panels/MeasureTools';
 import { PrintPanel } from '@/components/panels/PrintPanel';
 import { GoToXYPanel } from '@/components/panels/GoToXYPanel';
-import { SelectionTable } from '@/components/panels/SelectionTable';
+import { SelectionTools } from '@/components/panels/SelectionTools';
 import { BasemapConfig } from '@/components/panels/BasemapConfig';
-import { AttributeTablePanel } from '@/components/panels/AttributeTablePanel';
 import { StreetViewTool } from '@/components/panels/StreetViewTool';
+import { TableDock } from '@/components/tables/TableDock';
+import { useTableDockStore } from '@/store/useTableDockStore';
 import { StreetViewPanel } from '@/components/panels/StreetViewPanel';
 import { useMapStore, ActiveTool } from '@/store/useMapStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -50,7 +51,6 @@ const TOOLS: ToolDef[] = [
   { id: 'basemap', icon: 'basemap', toolKey: 'tool.basemap', panelKey: 'panel.basemap' },
   { id: 'filter', icon: 'filter', toolKey: 'tool.filter', panelKey: 'panel.filter' },
   { id: 'selection', icon: 'select', toolKey: 'tool.selection', panelKey: 'panel.selection' },
-  { id: 'table', icon: 'table', toolKey: 'tool.table', panelKey: 'panel.table' },
   { id: 'draw', icon: 'pencil', toolKey: 'tool.draw', panelKey: 'panel.draw' },
   { id: 'measure', icon: 'measure', toolKey: 'tool.measure', panelKey: 'panel.measure' },
   { id: 'goto', icon: 'coordinate-system', toolKey: 'tool.goto', panelKey: 'panel.goto' },
@@ -66,6 +66,8 @@ export function AppShell() {
   const config = useConfigStore((s) => s.config);
   const theme = useUiStore((s) => s.theme);
   const toggleTheme = useUiStore((s) => s.toggleTheme);
+  const dockOpen = useTableDockStore((s) => s.open);
+  const toggleDock = useTableDockStore((s) => s.toggle);
   const { t } = useI18n();
   const [collapsed] = useState(false);
 
@@ -115,6 +117,14 @@ export function AppShell() {
               onClick={() => toggleTool(tool.id)}
             />
           ))}
+          {/* La tabla no abre un panel lateral: alterna el panel acoplado
+              bajo el mapa, que necesita el ancho completo. */}
+          <CalciteAction
+            text={t('tool.table')}
+            icon="table"
+            active={dockOpen || undefined}
+            onClick={toggleDock}
+          />
         </CalciteActionBar>
 
         {activeTool && (
@@ -126,8 +136,7 @@ export function AppShell() {
                 {activeTool === 'layers' && <LayerListPanel />}
                 {activeTool === 'basemap' && <BasemapConfig />}
                 {activeTool === 'filter' && <FilterPanel />}
-                {activeTool === 'selection' && <SelectionTable />}
-                {activeTool === 'table' && <AttributeTablePanel />}
+                {activeTool === 'selection' && <SelectionTools />}
                 {activeTool === 'streetview' && <StreetViewTool />}
                 {activeTool === 'draw' && <DrawTools />}
                 {activeTool === 'measure' && <MeasureTools />}
@@ -143,6 +152,9 @@ export function AppShell() {
         <MapContainer />
         <MapControls />
         <CoordinateConversion />
+        <ErrorBoundary name={t('panel.table')}>
+          <TableDock />
+        </ErrorBoundary>
       </div>
 
       <ErrorBoundary name="Street View">

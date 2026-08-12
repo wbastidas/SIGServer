@@ -12,13 +12,21 @@
     "operationalMode": "mapimage",
     "featureSublayerIds": [9],
     "spatialReferenceWkid": 32717,
+    "forceSpatialReference": false,
     "geometryServiceUrl": "https://geoportal.cnelep.gob.ec/arcgis/rest/services/Utilities/Geometry/GeometryServer",
     "initialExtent": { "xmin": 0, "ymin": 0, "xmax": 0, "ymax": 0 },
     "initialCenter": { "longitude": -79.9, "latitude": -2.19 },
     "initialZoom": 12,
-    "visibleLayerIds": [9, 42],
+    "visibleLayerIds": [],
     "minScale": 0,
     "maxScale": 0
+  },
+  "selection": {
+    "fields": [
+      { "name": "OBJECTID", "label": "OBJECTID" },
+      { "name": "CODIGO_ESTRUCTURA", "label": "Codigo de estructura" }
+    ],
+    "showLayerName": true
   },
   "goto": {
     "allowedInputSR": [32717, 4326],

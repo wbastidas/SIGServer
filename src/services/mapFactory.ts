@@ -10,7 +10,7 @@ import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
 import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type Layer from '@arcgis/core/layers/Layer';
 import type { AppConfig, PopupLayerConfig } from '@/types/config';
-import { buildPopupTemplate } from './popupTemplateFactory';
+import { buildPopupTemplate, buildDefaultPopupTemplate } from './popupTemplateFactory';
 
 export interface BuiltMap {
   map: EsriMap;
@@ -21,13 +21,31 @@ export interface BuiltMap {
   sketchLayer: GraphicsLayer;
 }
 
-/** Crea el mapa base (RF-MAP-01) segun sea cache teselado o dinamico. */
-function createBasemapLayer(cfg: AppConfig): Layer {
+/**
+ * Crea el mapa base (RF-MAP-01) segun sea cache teselado o dinamico.
+ *
+ * Si se configuro "tiled" pero el servicio en realidad es dinamico, el TileLayer
+ * falla al cargar y la vista se queda sin cartografia (y sin esquema de teselas).
+ * Para que el visor siga siendo usable se sustituye automaticamente por un
+ * MapImageLayer (SRS §10.1: validar el tipo de publicacion de CartografiaN).
+ */
+function createBasemapLayer(cfg: AppConfig, basemap: Basemap): Layer {
   const { basemapUrl, basemapType } = cfg.map;
-  if (basemapType === 'tiled') {
-    return new TileLayer({ url: basemapUrl, title: 'Cartografia base' });
+  if (basemapType !== 'tiled') {
+    return new MapImageLayer({ url: basemapUrl, title: 'Cartografia base' });
   }
-  return new MapImageLayer({ url: basemapUrl, title: 'Cartografia base' });
+
+  const tiled = new TileLayer({ url: basemapUrl, title: 'Cartografia base' });
+  tiled.load().catch(() => {
+    console.warn(
+      '[mapFactory] El basemap configurado como "tiled" no se pudo cargar; ' +
+        'se usa MapImageLayer (revise map.basemapType en app-config.json).',
+    );
+    const fallback = new MapImageLayer({ url: basemapUrl, title: 'Cartografia base' });
+    basemap.baseLayers.removeAll();
+    basemap.baseLayers.add(fallback);
+  });
+  return tiled;
 }
 
 /** Crea las capas operacionales de red (RF-MAP-02). */
@@ -56,8 +74,12 @@ function createOperationalLayers(
         subs?.forEach((sub) => {
           const isGroup = !!sub.sublayers && sub.sublayers.length > 0;
           const popupCfg = popups.find((p) => p.layerId === sub.id);
-          if (popupCfg) {
-            sub.popupTemplate = buildPopupTemplate(popupCfg, cfg);
+          if (!isGroup) {
+            // Con configuracion se usa la del JSON; sin ella, una plantilla por
+            // defecto con todos los campos, para que SIEMPRE haya popup al clic.
+            sub.popupTemplate = popupCfg
+              ? buildPopupTemplate(popupCfg, cfg)
+              : buildDefaultPopupTemplate(sub.title ?? `Capa ${sub.id}`, cfg);
           }
           if (applyVisibility && !isGroup) {
             sub.visible = visibleLayerIds!.includes(sub.id);
@@ -89,8 +111,9 @@ function createOperationalLayers(
 }
 
 export function buildMap(cfg: AppConfig, popups: PopupLayerConfig[]): BuiltMap {
-  const basemapLayer = createBasemapLayer(cfg);
-  const basemap = new Basemap({ baseLayers: [basemapLayer], title: 'Base' });
+  const basemap = new Basemap({ baseLayers: [], title: 'Base' });
+  const basemapLayer = createBasemapLayer(cfg, basemap);
+  basemap.baseLayers.add(basemapLayer);
 
   const { operational, features } = createOperationalLayers(cfg, popups);
 
