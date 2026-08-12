@@ -26,6 +26,8 @@ import { PrintPanel } from '@/components/panels/PrintPanel';
 import { GoToXYPanel } from '@/components/panels/GoToXYPanel';
 import { SelectionTable } from '@/components/panels/SelectionTable';
 import { BasemapConfig } from '@/components/panels/BasemapConfig';
+import { AttributeTablePanel } from '@/components/panels/AttributeTablePanel';
+import { StreetViewTool } from '@/components/panels/StreetViewTool';
 import { StreetViewPanel } from '@/components/panels/StreetViewPanel';
 import { useMapStore, ActiveTool } from '@/store/useMapStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -48,10 +50,12 @@ const TOOLS: ToolDef[] = [
   { id: 'basemap', icon: 'basemap', toolKey: 'tool.basemap', panelKey: 'panel.basemap' },
   { id: 'filter', icon: 'filter', toolKey: 'tool.filter', panelKey: 'panel.filter' },
   { id: 'selection', icon: 'select', toolKey: 'tool.selection', panelKey: 'panel.selection' },
+  { id: 'table', icon: 'table', toolKey: 'tool.table', panelKey: 'panel.table' },
   { id: 'draw', icon: 'pencil', toolKey: 'tool.draw', panelKey: 'panel.draw' },
   { id: 'measure', icon: 'measure', toolKey: 'tool.measure', panelKey: 'panel.measure' },
   { id: 'goto', icon: 'coordinate-system', toolKey: 'tool.goto', panelKey: 'panel.goto' },
   { id: 'print', icon: 'print', toolKey: 'tool.print', panelKey: 'panel.print' },
+  { id: 'streetview', icon: 'road-sign', toolKey: 'tool.streetView', panelKey: 'panel.streetView' },
 ];
 
 export function AppShell() {
@@ -123,6 +127,8 @@ export function AppShell() {
                 {activeTool === 'basemap' && <BasemapConfig />}
                 {activeTool === 'filter' && <FilterPanel />}
                 {activeTool === 'selection' && <SelectionTable />}
+                {activeTool === 'table' && <AttributeTablePanel />}
+                {activeTool === 'streetview' && <StreetViewTool />}
                 {activeTool === 'draw' && <DrawTools />}
                 {activeTool === 'measure' && <MeasureTools />}
                 {activeTool === 'goto' && <GoToXYPanel />}

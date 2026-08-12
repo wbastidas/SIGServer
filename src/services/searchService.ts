@@ -14,6 +14,7 @@ import type {
   SearchDefinition,
 } from '@/types/config';
 import { buildWhere, escapeLike } from './queryUtils';
+import { safeQueryFeatures } from './safeQuery';
 
 const MAX_RESULTS = 50;
 
@@ -44,13 +45,13 @@ function getLayer(url: string): FeatureLayer {
 async function searchLayer(def: LayerSearch, term: string): Promise<SearchResult[]> {
   const layer = getLayer(def.url);
   const where = buildWhere(def.searchField, def.operator, term, def.caseInsensitive);
-  const result = await layer.queryFeatures({
+  const features = await safeQueryFeatures(layer, {
     where,
     outFields: def.outFields?.length ? def.outFields : ['*'],
     returnGeometry: def.returnGeometry ?? true,
-    num: MAX_RESULTS,
+    limit: MAX_RESULTS,
   });
-  return result.features.map((f) => ({
+  return features.map((f) => ({
     label: String(f.attributes[def.displayField] ?? '(sin valor)'),
     geometry: f.geometry ?? undefined,
     attributes: f.attributes,
@@ -68,19 +69,19 @@ async function searchRelatedTable(def: RelatedTableSearch, term: string): Promis
     term,
     def.source.caseInsensitive,
   );
-  const sourceResult = await sourceLayer.queryFeatures({
+  const sourceFeatures = await safeQueryFeatures(sourceLayer, {
     where,
     outFields: ['*'],
     returnGeometry: false,
-    num: MAX_RESULTS,
+    limit: MAX_RESULTS,
   });
 
-  if (sourceResult.features.length === 0) return [];
+  if (sourceFeatures.length === 0) return [];
 
   if (def.relation.mode === 'relationshipId') {
-    return resolveByRelationship(def, sourceLayer, sourceResult.features);
+    return resolveByRelationship(def, sourceLayer, sourceFeatures);
   }
-  return resolveByJoin(def, sourceResult.features);
+  return resolveByJoin(def, sourceFeatures);
 }
 
 async function resolveByRelationship(
@@ -131,13 +132,13 @@ async function resolveByJoin(
 
   const targetLayer = getLayer(def.relation.targetLayerUrl);
   const uniqueKeys = Array.from(new Set(keys));
-  const result = await targetLayer.queryFeatures({
+  const features = await safeQueryFeatures(targetLayer, {
     where: `${targetKeyField} IN (${uniqueKeys.join(',')})`,
     outFields: ['*'],
     returnGeometry: def.returnGeometry ?? true,
-    num: MAX_RESULTS,
+    limit: MAX_RESULTS,
   });
-  return result.features.map((f) => ({
+  return features.map((f) => ({
     label: String(f.attributes[targetKeyField] ?? '(sin valor)'),
     geometry: f.geometry ?? undefined,
     attributes: f.attributes,
@@ -160,14 +161,14 @@ export async function getSuggestions(def: SearchDefinition, term: string): Promi
   const operator = def.type === 'layer' ? def.operator : def.source.operator;
   const ci = def.type === 'layer' ? def.caseInsensitive : def.source.caseInsensitive;
   const layer = getLayer(url);
-  const result = await layer.queryFeatures({
+  const features = await safeQueryFeatures(layer, {
     where: buildWhere(field, operator, term, ci),
     outFields: [field],
     returnGeometry: false,
-    num: 10,
+    limit: 10,
     orderByFields: [field],
   });
-  const values = result.features
+  const values = features
     .map((f) => f.attributes[field])
     .filter((v): v is string | number => v != null)
     .map(String);

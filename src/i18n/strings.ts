@@ -90,6 +90,22 @@ export type LocaleKey =
   | 'selection.hintNoFeature'
   | 'selection.csv'
   | 'selection.goTo'
+  | 'selection.querying'
+  | 'selection.noResults'
+  // Tabla de atributos
+  | 'tool.table'
+  | 'panel.table'
+  | 'table.layer'
+  | 'table.scopeVisible'
+  | 'table.scopeAll'
+  | 'table.noLayers'
+  | 'table.loading'
+  | 'table.hintVisible'
+  | 'table.hintAll'
+  // Zoom a capa
+  | 'layers.zoomTo'
+  | 'layers.zoomToTitle'
+  | 'layers.noExtent'
   // Impresion
   | 'print.noService'
   | 'print.help'
@@ -98,7 +114,15 @@ export type LocaleKey =
   | 'sv.loading'
   | 'sv.noCoverage'
   | 'sv.unavailable'
-  | 'sv.close';
+  | 'sv.close'
+  | 'sv.popupBlocked'
+  | 'sv.openInGoogle'
+  | 'sv.pickOnMap'
+  | 'sv.pickOnMapActive'
+  | 'sv.pickHint'
+  | 'sv.noKeyHint'
+  | 'tool.streetView'
+  | 'panel.streetView';
 
 type Dictionary = Record<LocaleKey, string>;
 
@@ -190,6 +214,23 @@ const esEC: Dictionary = {
     'Nota: configure capas como FeatureLayer (map.operationalMode) para seleccion espacial.',
   'selection.csv': 'CSV',
   'selection.goTo': 'Ir al elemento',
+  'selection.querying': 'Consultando capas...',
+  'selection.noResults':
+    'No se encontraron elementos. Verifique que la capa este encendida y acerque el mapa (algunas capas solo se consultan a cierta escala).',
+
+  'tool.table': 'Tabla de atributos',
+  'panel.table': 'Tabla de atributos',
+  'table.layer': 'Capa',
+  'table.scopeVisible': 'Solo lo visible',
+  'table.scopeAll': 'Ver todo',
+  'table.noLayers': 'No hay capas consultables en el mapa.',
+  'table.loading': 'Cargando capas...',
+  'table.hintVisible': 'Muestra unicamente los elementos dentro del area visible del mapa.',
+  'table.hintAll': 'Muestra todos los elementos de la capa (limitado por el servicio).',
+
+  'layers.zoomTo': 'Zoom a la capa',
+  'layers.zoomToTitle': 'Acercar el mapa a la extension completa de la capa',
+  'layers.noExtent': 'La capa no informa una extension valida.',
 
   'print.noService':
     'No hay servicio de impresion configurado (print.printServiceUrl en app-config.json).',
@@ -202,6 +243,16 @@ const esEC: Dictionary = {
   'sv.unavailable':
     'Street View no disponible: falta la clave de Google (VITE_GOOGLE_MAPS_KEY) o no hay conexion a internet.',
   'sv.close': 'Cerrar',
+  'sv.popupBlocked':
+    'El navegador bloqueo la ventana emergente de Street View. Permita las ventanas emergentes para este sitio o use el enlace:',
+  'sv.openInGoogle': 'Abrir en Google Street View',
+  'sv.pickOnMap': 'Elegir punto en el mapa',
+  'sv.pickOnMapActive': 'Cancelar seleccion',
+  'sv.pickHint': 'Haga clic en cualquier lugar del mapa para abrir Street View en ese punto.',
+  'sv.noKeyHint':
+    'Sin clave de Google configurada: Street View se abre en una ventana emergente independiente del navegador (no requiere clave).',
+  'tool.streetView': 'Street View',
+  'panel.streetView': 'Google Street View',
 };
 
 const enUS: Dictionary = {
@@ -291,6 +342,23 @@ const enUS: Dictionary = {
     'Note: configure layers as FeatureLayer (map.operationalMode) for spatial selection.',
   'selection.csv': 'CSV',
   'selection.goTo': 'Go to feature',
+  'selection.querying': 'Querying layers...',
+  'selection.noResults':
+    'No features found. Check that the layer is turned on and zoom in (some layers are only queryable at certain scales).',
+
+  'tool.table': 'Attribute table',
+  'panel.table': 'Attribute table',
+  'table.layer': 'Layer',
+  'table.scopeVisible': 'Visible only',
+  'table.scopeAll': 'Show all',
+  'table.noLayers': 'No queryable layers in the map.',
+  'table.loading': 'Loading layers...',
+  'table.hintVisible': 'Shows only features within the current map extent.',
+  'table.hintAll': 'Shows all features of the layer (limited by the service).',
+
+  'layers.zoomTo': 'Zoom to layer',
+  'layers.zoomToTitle': 'Zoom the map to the full extent of the layer',
+  'layers.noExtent': 'The layer does not report a valid extent.',
 
   'print.noService':
     'No print service configured (print.printServiceUrl in app-config.json).',
@@ -303,6 +371,16 @@ const enUS: Dictionary = {
   'sv.unavailable':
     'Street View unavailable: missing Google key (VITE_GOOGLE_MAPS_KEY) or no internet connection.',
   'sv.close': 'Close',
+  'sv.popupBlocked':
+    'The browser blocked the Street View popup window. Allow popups for this site or use the link:',
+  'sv.openInGoogle': 'Open in Google Street View',
+  'sv.pickOnMap': 'Pick a point on the map',
+  'sv.pickOnMapActive': 'Cancel picking',
+  'sv.pickHint': 'Click anywhere on the map to open Street View at that point.',
+  'sv.noKeyHint':
+    'No Google key configured: Street View opens in a separate browser popup window (no key required).',
+  'tool.streetView': 'Street View',
+  'panel.streetView': 'Google Street View',
 };
 
 export const dictionaries: Record<string, Dictionary> = {

@@ -22,6 +22,8 @@ export type ActiveTool =
   | 'print'
   | 'goto'
   | 'selection'
+  | 'table'
+  | 'streetview'
   | null;
 
 interface MapState {

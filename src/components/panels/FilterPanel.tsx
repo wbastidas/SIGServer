@@ -19,6 +19,7 @@ import {
 } from '@esri/calcite-components-react';
 import type { FilterConfig } from '@/types/config';
 import { buildValueWhere } from '@/services/queryUtils';
+import { safeQueryFeatures } from '@/services/safeQuery';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
 import { useI18n } from '@/i18n/useI18n';
@@ -44,19 +45,22 @@ export function FilterPanel() {
     setLoading(true);
     setError(null);
     const fl = new FeatureLayer({ url: `${operationalUrl}/${filter.layerId}` });
-    fl.queryFeatures({
+    // safeQueryFeatures respeta las capacidades del servicio: sin ellas, pedir
+    // `num` o `returnDistinctValues` hace fallar la consulta con
+    // "Pagination is not supported". La deduplicacion se hace en cliente.
+    safeQueryFeatures(fl, {
       where: `${filter.field} IS NOT NULL`,
       outFields: [filter.field],
       returnDistinctValues: true,
       returnGeometry: false,
       orderByFields: [filter.field],
-      num: 1000,
+      limit: 2000,
     })
-      .then((res) => {
+      .then((features) => {
         if (cancelled) return;
         const distinct = Array.from(
-          new Set(res.features.map((f) => String(f.attributes[filter.field])).filter(Boolean)),
-        );
+          new Set(features.map((f) => String(f.attributes[filter.field])).filter(Boolean)),
+        ).sort();
         setValues(distinct);
       })
       .catch((err) => !cancelled && setError((err as Error).message))

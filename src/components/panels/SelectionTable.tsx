@@ -12,6 +12,7 @@ import type Graphic from '@arcgis/core/Graphic';
 type RemovableHandle = { remove: () => void };
 import {
   CalciteButton,
+  CalciteNotice,
   CalciteSegmentedControl,
   CalciteSegmentedControlItem,
 } from '@esri/calcite-components-react';
@@ -24,7 +25,6 @@ type Mode = 'click' | 'rectangle' | 'polygon';
 
 export function SelectionTable() {
   const view = useMapStore((s) => s.view);
-  const featureLayers = useMapStore((s) => s.featureLayers);
   const graphicsLayer = useMapStore((s) => s.graphicsLayer);
   const sketchLayer = useMapStore((s) => s.sketchLayer);
   const selected = useMapStore((s) => s.selectedFeatures);
@@ -32,17 +32,30 @@ export function SelectionTable() {
   const { t } = useI18n();
 
   const [mode, setMode] = useState<Mode>('click');
+  const [busy, setBusy] = useState(false);
+  const [empty, setEmpty] = useState(false);
   const svmRef = useRef<SketchViewModel | null>(null);
   const clickHandle = useRef<RemovableHandle | null>(null);
 
-  // Modo clic: escucha clics del mapa y consulta FeatureLayers (RF-SEL-01).
+  // Modo clic: consulta las capas visibles alrededor del punto pulsado
+  // (funciona con FeatureLayer y con subcapas de MapImageLayer) (RF-SEL-01).
   useEffect(() => {
     if (!view) return;
     clickHandle.current?.remove?.();
     if (mode === 'click') {
       clickHandle.current = view.on('click', async (event) => {
-        const feats = await selectByClick(view, event);
-        if (feats.length > 0) setSelected(feats);
+        if (!event.mapPoint) return;
+        setBusy(true);
+        setEmpty(false);
+        try {
+          const result = await selectByClick(view, event.mapPoint);
+          setSelected(result.features);
+          setEmpty(result.features.length === 0);
+        } catch {
+          setEmpty(true);
+        } finally {
+          setBusy(false);
+        }
       }) as unknown as RemovableHandle;
     }
     return () => clickHandle.current?.remove?.();
@@ -63,8 +76,17 @@ export function SelectionTable() {
         const geometry = evt.graphic.geometry;
         sketchLayer.remove(evt.graphic);
         if (!geometry) return;
-        const feats = await selectByGeometry(geometry, featureLayers);
-        setSelected(feats);
+        setBusy(true);
+        setEmpty(false);
+        try {
+          const result = await selectByGeometry(view, geometry);
+          setSelected(result.features);
+          setEmpty(result.features.length === 0);
+        } catch {
+          setEmpty(true);
+        } finally {
+          setBusy(false);
+        }
         // Reinicia para otra seleccion.
         svm.create(mode === 'rectangle' ? 'rectangle' : 'polygon');
       }
@@ -74,7 +96,7 @@ export function SelectionTable() {
       handle.remove();
       svm.destroy();
     };
-  }, [view, sketchLayer, mode, featureLayers, setSelected]);
+  }, [view, sketchLayer, mode, setSelected]);
 
   async function focusFeature(feature: Graphic) {
     const geometry = feature.geometry;
@@ -124,9 +146,16 @@ export function SelectionTable() {
       </CalciteSegmentedControl>
 
       <p className="muted">
-        {t('selection.count', { n: selected.length })}{' '}
-        {featureLayers.length === 0 && t('selection.hintNoFeature')}
+        {busy
+          ? t('selection.querying')
+          : t('selection.count', { n: selected.length })}
       </p>
+
+      {empty && !busy && (
+        <CalciteNotice open kind="info" icon scale="s">
+          <div slot="message">{t('selection.noResults')}</div>
+        </CalciteNotice>
+      )}
 
       <div className="panel-actions">
         <CalciteButton

@@ -7,12 +7,12 @@ import { useEffect, useRef, useState } from 'react';
 import { CalciteButton } from '@esri/calcite-components-react';
 import { useStreetViewStore } from '@/store/useStreetViewStore';
 import { useConfigStore } from '@/store/useConfigStore';
-import { loadGoogleMaps, getGoogleKey } from '@/services/googleStreetView';
+import { loadGoogleMaps, getGoogleKey, streetViewUrl } from '@/services/googleStreetView';
 import { useI18n } from '@/i18n/useI18n';
 import './streetview.css';
 
 export function StreetViewPanel() {
-  const { open, latitude, longitude, close } = useStreetViewStore();
+  const { open, latitude, longitude, close, popupBlocked } = useStreetViewStore();
   const enabled = useConfigStore((s) => s.config?.app.streetView.enabled);
   const { t } = useI18n();
   const panoRef = useRef<HTMLDivElement>(null);
@@ -21,6 +21,9 @@ export function StreetViewPanel() {
   );
 
   useEffect(() => {
+    // Sin clave el panorama no se incrusta: el panel solo aparece si la ventana
+    // emergente fue bloqueada, para ofrecer el enlace manual.
+    if (popupBlocked) return;
     if (!open || latitude == null || longitude == null) return;
     let cancelled = false;
     setStatus('loading');
@@ -58,7 +61,7 @@ export function StreetViewPanel() {
     return () => {
       cancelled = true;
     };
-  }, [open, latitude, longitude]);
+  }, [open, latitude, longitude, popupBlocked]);
 
   if (!open || !enabled) return null;
 
@@ -76,10 +79,34 @@ export function StreetViewPanel() {
         />
       </div>
       <div className="sv-body">
-        <div ref={panoRef} className="sv-pano" style={{ display: status === 'ok' ? 'block' : 'none' }} />
-        {status === 'loading' && <div className="sv-message">{t('sv.loading')}</div>}
-        {status === 'no-coverage' && <div className="sv-message">{t('sv.noCoverage')}</div>}
-        {status === 'unavailable' && <div className="sv-message">{t('sv.unavailable')}</div>}
+        {popupBlocked ? (
+          // Sin clave de Google se abre una ventana emergente; si el navegador
+          // la bloquea, ofrecemos el enlace para abrirla manualmente.
+          <div className="sv-message">
+            <p>{t('sv.popupBlocked')}</p>
+            {latitude != null && longitude != null && (
+              <a
+                className="sv-link"
+                href={streetViewUrl(latitude, longitude)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('sv.openInGoogle')}
+              </a>
+            )}
+          </div>
+        ) : (
+          <>
+            <div
+              ref={panoRef}
+              className="sv-pano"
+              style={{ display: status === 'ok' ? 'block' : 'none' }}
+            />
+            {status === 'loading' && <div className="sv-message">{t('sv.loading')}</div>}
+            {status === 'no-coverage' && <div className="sv-message">{t('sv.noCoverage')}</div>}
+            {status === 'unavailable' && <div className="sv-message">{t('sv.unavailable')}</div>}
+          </>
+        )}
       </div>
     </div>
   );

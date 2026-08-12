@@ -69,6 +69,9 @@ Localiza elementos por atributo.
 ### 3.2 📚 Capas y leyenda
 Controla qué se ve.
 - **Casillas** para encender/apagar capas y subcapas.
+- **Zoom a la capa:** cada capa y subcapa tiene un botón (icono de lupa) que
+  **encuadra el mapa sobre esa capa**. Es la forma más rápida de ir a los datos
+  cuando no sabe dónde están.
 - **Opacidad por capa:** deslice el control para hacer una capa más/menos transparente.
 - **Leyenda:** muestra la simbología de las capas visibles.
 
@@ -92,21 +95,35 @@ Selecciona elementos y los lista en una tabla.
 3. **Haga clic en una fila** → el mapa hace zoom y resalta ese elemento.
 4. **CSV** exporta la selección; **Limpiar** la borra.
 
-> Requiere que las capas estén cargadas como *FeatureLayer* (parámetro
-> `operationalMode`). Si no, la selección espacial no está disponible.
+> Consulta las capas **encendidas** en ese momento, tanto si están publicadas como
+> FeatureLayer como si vienen de un MapImageLayer. Si no obtiene resultados,
+> compruebe que la capa esté encendida y acerque el mapa (algunas capas solo se
+> dibujan y consultan a partir de cierta escala).
 
-### 3.6 ✎ Dibujo
+### 3.6 ▦ Tabla de atributos
+Muestra los datos de una capa en forma de tabla, sin necesidad de seleccionar antes.
+1. Elija la **capa** en la lista.
+2. Elija el alcance:
+   - **Solo lo visible:** únicamente los elementos dentro del área que está viendo
+     en el mapa (se actualiza al navegar).
+   - **Ver todo:** todos los elementos de la capa.
+3. Ordene y explore con los controles de la tabla.
+
+> Funciona también cuando el servicio se publica como MapImageLayer: las subcapas
+> se consultan automáticamente.
+
+### 3.7 ✎ Dibujo
 Dibuje anotaciones sobre el mapa.
 - Elija la forma (punto, línea, polígono, rectángulo, círculo) y dibuje.
 - Puede **mover, editar y borrar** las geometrías.
 - Los dibujos están en una capa aparte y **no interfieren** con la consulta/selección.
 
-### 3.7 📏 Medición
+### 3.8 📏 Medición
 - **Distancia:** pulse puntos sucesivos; doble clic para terminar.
 - **Área:** dibuje un polígono; muestra la superficie.
 - **Limpiar medición** borra el resultado. Las unidades vienen de la configuración.
 
-### 3.8 ⯐ Ir a XY / LatLong
+### 3.9 ⯐ Ir a XY / LatLong
 Navega a una coordenada exacta.
 1. Elija el **sistema de referencia de entrada** (el del mapa, o Lat/Long WGS84).
 2. Escriba **X/Y** (o **Longitud/Latitud**).
@@ -114,7 +131,7 @@ Navega a una coordenada exacta.
    Lat/Long, se **reproyecta** automáticamente al sistema del mapa.
 4. Se validan los rangos; los errores se muestran con un mensaje claro.
 
-### 3.9 🖨 Imprimir
+### 3.10 🖨 Imprimir
 Genera un mapa imprimible con simbología y leyenda.
 1. Elija plantilla, formato (PDF/PNG/JPG), título y escala.
 2. Pulse imprimir; al terminar se ofrece el archivo para descargar.
@@ -135,12 +152,21 @@ Al hacer clic sobre un elemento (o al ubicarlo desde una búsqueda) se abre su *
 
 ## 5. Google Street View
 
-Desde el botón **Street View** del popup se abre un **recuadro flotante** con la vista
-de calle en la ubicación del elemento.
-- Es **redimensionable** (arrastre la esquina) y **cerrable** (botón ✕).
-- No interrumpe el mapa: puede seguir navegando con el recuadro abierto.
-- Si no hay cobertura en ese punto, muestra "sin cobertura". Si falta la clave de
-  Google o no hay internet, avisa que no está disponible.
+Hay dos formas de abrirlo:
+- Desde el botón **Street View** del popup de un elemento.
+- Desde la herramienta **Street View** de la barra: pulse **Elegir punto en el mapa**
+  y luego haga clic en **cualquier lugar** del mapa.
+
+El comportamiento depende de si hay clave de Google configurada:
+
+| Situación | Qué ocurre |
+|---|---|
+| **Sin clave de Google** (caso habitual) | Street View se abre en una **ventana emergente independiente** del navegador. No requiere clave ni facturación. |
+| **Con clave** (`VITE_GOOGLE_MAPS_KEY`) | El panorama se **incrusta** en un recuadro flotante dentro de la app, redimensionable y cerrable. |
+
+> Si el navegador bloquea la ventana emergente, la aplicación muestra un enlace para
+> abrirla manualmente. Permita las ventanas emergentes para este sitio y no volverá a
+> preguntar.
 
 ---
 
