@@ -5,6 +5,21 @@
  */
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { CalciteButton, CalciteNotice } from '@esri/calcite-components-react';
+import { useConfigStore } from '@/store/useConfigStore';
+import { DEFAULT_LOCALE, translate } from '@/i18n/strings';
+
+/**
+ * Traduccion fuera de React: este es un componente de clase (los limites de
+ * error deben serlo) y no puede usar el hook `useI18n`.
+ */
+function t(
+  key: Parameters<typeof translate>[1],
+  params?: Parameters<typeof translate>[2],
+): string {
+  const locale =
+    useConfigStore.getState().config?.app.app.defaultLocale ?? DEFAULT_LOCALE;
+  return translate(locale, key, params);
+}
 
 interface Props {
   /** Nombre del modulo, para el mensaje. */
@@ -36,11 +51,13 @@ export class ErrorBoundary extends Component<Props, State> {
       return (
         <CalciteNotice open kind="danger" icon scale="s">
           <div slot="title">
-            {this.props.name ? `Error en ${this.props.name}` : 'Error en el modulo'}
+            {this.props.name
+              ? t('error.inModule', { name: this.props.name })
+              : t('error.generic')}
           </div>
-          <div slot="message">{this.state.message || 'Ocurrio un problema inesperado.'}</div>
+          <div slot="message">{this.state.message || t('error.unexpected')}</div>
           <CalciteButton slot="link" appearance="transparent" scale="s" onClick={this.reset}>
-            Reintentar
+            {t('common.retry')}
           </CalciteButton>
         </CalciteNotice>
       );

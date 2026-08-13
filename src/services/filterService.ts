@@ -37,9 +37,16 @@ export function filterFields(cfg: FilterConfig): string[] {
   return cfg.field ? [cfg.field] : [];
 }
 
-/** Etiqueta del filtro para la interfaz. */
+/**
+ * Etiqueta del filtro para la interfaz.
+ *
+ * Nunca devuelve cadena vacia: un filtro mal configurado apareceria como una
+ * opcion en blanco imposible de elegir.
+ */
 export function filterLabel(cfg: FilterConfig): string {
-  return cfg.label ?? filterFields(cfg).join(' / ') ?? 'Filtro';
+  if (cfg.label?.trim()) return cfg.label;
+  const fields = filterFields(cfg);
+  return fields.length > 0 ? fields.join(' / ') : 'Filtro';
 }
 
 function matchesOnlyLayers(

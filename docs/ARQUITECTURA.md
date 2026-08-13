@@ -68,14 +68,26 @@ src/
 │   ├── useConfigStore.ts    Configuración cargada
 │   ├── useAuthStore.ts      Sesión/login/logout
 │   ├── useMapStore.ts       MapView/Map + herramienta activa + selección
+│   ├── useInteractionStore.ts  Modo del mapa (identify / selección / Street View)
+│   ├── useSelectionRunStore.ts Estado de la última consulta de selección
+│   ├── useTableDockStore.ts Panel de tablas acoplado bajo el mapa
+│   ├── useFilterStore.ts    Filtro activo (para el aviso sobre el mapa)
 │   ├── useUiStore.ts        Tema claro/oscuro
-│   └── useStreetViewStore.ts Estado del panel flotante de Street View
+│   └── useStreetViewStore.ts Estado de Street View (panel o ventana externa)
 ├── services/                Lógica (pura + integración con el SDK)
 │   ├── mapFactory.ts        Construye Map, basemap y capas desde config
 │   ├── popupTemplateFactory.ts  Arma los PopupTemplate (atributos+relacionados+SV)
 │   ├── searchService.ts     Búsquedas directas y relacionadas
 │   ├── selectionService.ts  Selección espacial (clic/rectángulo/polígono)
-│   ├── queryUtils.ts        Lógica PURA: WHERE, IN, CSV (con pruebas unitarias)
+│   ├── identifyService.ts   Todos los elementos bajo el clic, en un solo popup
+│   ├── filterService.ts     Filtro por campo sobre todas las capas que lo tengan
+│   ├── layerRegistry.ts     Capas consultables (incluye subcapas de MapImageLayer)
+│   ├── safeQuery.ts         Consulta según capacidades reales + lotes de 1000
+│   ├── domainUtils.ts       Dominios: código → descripción
+│   ├── csvExport.ts         Exportación con campos configurables + XY (PURA)
+│   ├── selectionColumns.ts  Columnas de la tabla de selección (PURA)
+│   ├── viewOptions.ts       Opciones del MapView de las que depende el zoom (PURA)
+│   ├── queryUtils.ts        Lógica PURA: WHERE, IN, escapes
 │   ├── projectionService.ts Reproyección Lat/Long ↔ SR del mapa
 │   ├── highlightService.ts  Resaltado + zoom a un elemento
 │   ├── authService.ts       Login (backend o demo) y persistencia de sesión
@@ -83,7 +95,9 @@ src/
 │   └── googleStreetView.ts  Carga diferida de la Google Maps JS API
 ├── components/
 │   ├── auth/                LoginPage, AuthGate, login.css
-│   ├── map/                 MapContainer, MapControls, CoordinateConversion
+│   ├── map/                 MapContainer, MapControls, MapInteractions,
+│   │                        CoordinateConversion, FilterBanner, StreetViewMarker
+│   ├── tables/              TableDock, SelectionResults, LayerTable
 │   ├── layout/              AppShell (shell), shell.css
 │   ├── panels/              Un componente por herramienta (ver §6)
 │   └── common/              ErrorBoundary, useBindView (hook)
@@ -136,9 +150,18 @@ herramientas (RF-ARQ-01): ninguna importa a otra; todas hablan a través del sto
 |---|---|---|
 | `useConfigStore` | `config` (FullConfig), `load()`, `reload()` | Todos |
 | `useAuthStore` | `session`, `login()`, `logout()`, `isAuthenticated()` | AuthGate, LoginPage, AppShell |
-| `useMapStore` | `view` (MapView), `map`, `basemapLayer`, `graphicsLayer`, `sketchLayer`, `featureLayers`, `activeTool`, `selectedFeatures` | MapContainer (escribe), todos los paneles (leen) |
+| `useMapStore` | `view` (MapView), `map`, `basemapLayer`, `graphicsLayer`, `sketchLayer`, `activeTool`, `selectedFeatures`, `selectionGroups` | MapContainer (escribe), todos los paneles (leen) |
+| `useInteractionStore` | `mode` del mapa: `identify` (por defecto), `select-*`, `streetview` | `MapInteractions` (ejecuta), SelectionTools y StreetViewTool (conmutan) |
+| `useSelectionRunStore` | Estado de la última consulta: `busy`, `count`, `total`, `truncated`, `error` | SelectionTools |
+| `useTableDockStore` | Panel de tablas: `open`, `tab`, `height` | AppShell, TableDock, MapInteractions |
+| `useFilterStore` | Filtro activo (`label`, `values`, capas afectadas) | FilterPanel, FilterBanner |
 | `useUiStore` | `theme`, `toggleTheme()` | App, AppShell |
-| `useStreetViewStore` | `open`, `latitude`, `longitude`, `openAt()`, `close()` | MapContainer (dispara), StreetViewPanel |
+| `useStreetViewStore` | `open`, `embedded`, `latitude`, `longitude`, `openAt()`, `close()` | MapInteractions (dispara), StreetViewPanel, StreetViewMarker |
+
+**Interacción con el mapa.** Todos los clics los atiende un único componente
+persistente (`MapInteractions`) según el `mode` del store. Es lo que permite que
+la selección siga activa aunque se cierren los paneles o la tabla: antes cada
+panel registraba su propio manejador y al cerrarlo se perdía.
 
 **Idea clave:** `MapContainer` crea el `MapView` una sola vez y lo guarda en
 `useMapStore`. Los paneles no crean mapas; **toman la instancia del store**. Añadir o
@@ -151,14 +174,22 @@ quitar una herramienta no afecta a las demás.
 Los servicios separan la lógica de la UI. Hay dos tipos:
 
 ### 5.1 Lógica pura (testeable, sin SDK ni navegador)
-- **`queryUtils.ts`** — construcción de cláusulas SQL/WHERE y exportación CSV:
+Es donde vive lo que se puede probar sin navegador. **57 pruebas unitarias** en total.
+
+- **`queryUtils.ts`** — cláusulas WHERE y escapes:
   - `buildWhere(campo, op, valor, ci)` → `LIKE`/`=` con `UPPER()` para búsqueda
     insensible a mayúsculas (RF-SRC-02).
   - `buildValueWhere(campo, valores)` → `=` para uno, `IN (...)` para varios
     (filtro individual/múltiple, RF-FIL-02).
-  - `escapeLike()` → escapa comillas (anti-inyección).
-  - `featuresToCsv()` → serializa la selección a CSV (RF-SEL-05).
-  - **Tiene 13 pruebas unitarias** (`queryUtils.test.ts`).
+  - `escapeLike()` / `escapeHtml()` → anti-inyección en SQL y en el HTML del popup.
+- **`csvExport.ts`** — exportación (RF-SEL-05): campos configurables por capa y
+  columnas de geometría (`X`/`Y` en puntos, `X_INICIAL`…`Y_FINAL` en líneas).
+  Exporta el **valor almacenado**, no la descripción del dominio.
+- **`selectionColumns.ts`** — qué columnas muestra la tabla de selección, con
+  campos por capa y coincidencia sin distinguir mayúsculas.
+- **`viewOptions.ts`** — opciones del `MapView` de las que depende que el zoom
+  funcione (`snapToZoom: false`, `scale` en lugar de `zoom`).
+- **`filterService.ts`** (parte pura) — `filterFields()` y `filterLabel()`.
 
 ### 5.2 Integración con el SDK de ArcGIS
 - **`mapFactory.ts`** — a partir de la config crea el `Map`: elige `TileLayer`
@@ -173,8 +204,24 @@ Los servicios separan la lógica de la UI. Hay dos tipos:
 - **`searchService.ts`** — ejecuta las búsquedas: directa sobre una capa, o sobre una
   tabla resolviendo el elemento espacial relacionado por `queryRelatedFeatures` o por
   *join*. También genera sugerencias/autocompletado. Limita resultados (paginación).
-- **`selectionService.ts`** — selección por clic (`hitTest`) y por geometría dibujada
-  (consulta por intersección a las FeatureLayers). Re-exporta `featuresToCsv`.
+- **`layerRegistry.ts`** — normaliza las capas consultables. Cuando el servicio se
+  carga como `MapImageLayer` el mapa no contiene ninguna `FeatureLayer`; aquí las
+  subcapas se exponen como capas consultables para que selección, tabla y zoom
+  funcionen igual en ambos modos.
+- **`safeQuery.ts`** — consulta respetando las **capacidades reales** del servicio
+  (`supportsPagination`, `supportsDistinct`, `supportsOrderBy`): pedir `num` a una
+  capa sin paginación provoca *"Pagination is not supported"*. Incluye
+  `pagedQueryFeatures()`, que trae por lotes de 1000 con conteo previo.
+- **`selectionService.ts`** — selección por clic (rectángulo de tolerancia en
+  unidades del mapa) y por geometría dibujada, agrupando por capa e informando si
+  el resultado quedó recortado por volumen.
+- **`identifyService.ts`** — al pulsar el mapa devuelve **todos** los elementos bajo
+  el punto, de todas las capas visibles, para un único popup navegable.
+- **`filterService.ts`** — filtro por **campo**, no por capa: descubre todas las
+  capas que publiquen alguno de los campos (`ALIMENTADORID` / `ALIMENTADOR`),
+  resuelve el nombre real en cada una y aplica o retira `definitionExpression`.
+- **`domainUtils.ts`** — traduce códigos a descripción (dominios de valores
+  codificados, incluidos los definidos por subtipo).
 - **`projectionService.ts`** — usa el motor de proyección del SDK para convertir
   Lat/Long (4326) ↔ SR del mapa, y viceversa (usado por "Ir a XY" y Street View).
 - **`highlightService.ts`** — dibuja un símbolo de resaltado, hace `goTo` (zoom/pan) y
@@ -223,7 +270,9 @@ Los servicios separan la lógica de la UI. Hay dos tipos:
 | `LayerListPanel` | Lista de capas on/off, opacidad por capa, leyenda | RF-LYR-01..04 |
 | `BasemapConfig` | Visibilidad y opacidad del mapa base | §3.2 |
 | `FilterPanel` | Filtro por campo (ALIMENTADORID), individual o múltiple `IN` | RF-FIL-01..05 |
-| `SelectionTable` | Selección por clic/rectángulo/polígono, tabla sincronizada, fila→zoom, export CSV | RF-SEL-01..05 |
+| `SelectionTools` | Elige el modo de selección (clic/rectángulo/polígono); el trabajo lo hace `MapInteractions` | RF-SEL-01 |
+| `TableDock` · `SelectionResults` · `LayerTable` | Panel acoplado bajo el mapa: resultados agrupados por capa con casillas que resaltan en el mapa, y tabla de capa completa | RF-SEL-02..05 |
+| `FilterBanner` | Aviso permanente del filtro activo, con botón para apagarlo | RF-FIL-04 |
 | `DrawTools` | Dibujo (`arcgis-sketch`) en capa separada | RF-DRW-01..04 |
 | `MeasureTools` | Medición de distancia y área, unidades configurables | RF-MSR-01..03 |
 | `GoToXYPanel` | Ir a X,Y en SR del mapa o Lat/Long con reproyección y validación | RF-GOTO-01..03 |

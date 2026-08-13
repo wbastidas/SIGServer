@@ -16,6 +16,9 @@ export type LocaleKey =
   | 'common.apply'
   | 'common.loading'
   | 'common.retry'
+  | 'error.inModule'
+  | 'error.generic'
+  | 'error.unexpected'
   // Login
   | 'login.user'
   | 'login.password'
@@ -165,6 +168,9 @@ const esEC: Dictionary = {
   'common.apply': 'Aplicar',
   'common.loading': 'Cargando...',
   'common.retry': 'Reintentar',
+  'error.inModule': 'Error en {name}',
+  'error.generic': 'Error en el modulo',
+  'error.unexpected': 'Ocurrio un problema inesperado.',
 
   'login.user': 'Usuario',
   'login.password': 'Contrasena',
@@ -209,7 +215,7 @@ const esEC: Dictionary = {
   'basemap.visible': 'Visible',
   'basemap.opacity': 'Opacidad',
 
-  'filter.layerField': 'Capa / campo',
+  'filter.layerField': 'Filtro',
   'filter.multiple': 'Seleccion multiple (IN)',
   'filter.single': 'Seleccion individual',
   'filter.loadingValues': 'cargando valores...',
@@ -321,6 +327,9 @@ const enUS: Dictionary = {
   'common.apply': 'Apply',
   'common.loading': 'Loading...',
   'common.retry': 'Retry',
+  'error.inModule': 'Error in {name}',
+  'error.generic': 'Module error',
+  'error.unexpected': 'An unexpected problem occurred.',
 
   'login.user': 'User',
   'login.password': 'Password',
@@ -364,7 +373,7 @@ const enUS: Dictionary = {
   'basemap.visible': 'Visible',
   'basemap.opacity': 'Opacity',
 
-  'filter.layerField': 'Layer / field',
+  'filter.layerField': 'Filter',
   'filter.multiple': 'Multiple selection (IN)',
   'filter.single': 'Single selection',
   'filter.loadingValues': 'loading values...',
