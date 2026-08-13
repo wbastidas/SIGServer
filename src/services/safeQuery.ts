@@ -68,3 +68,81 @@ export async function safeQueryFeatures(
   const features = result.features ?? [];
   return limit ? features.slice(0, limit) : features;
 }
+
+/** Tamano de lote al traer muchos elementos (RNF-PERF-03). */
+export const PAGE_SIZE = 1000;
+
+export interface PagedResult {
+  features: Graphic[];
+  /** Total real en el servidor (si se pudo contar). */
+  total: number;
+  /** true si se dejaron elementos sin traer por alcanzar el maximo. */
+  truncated: boolean;
+}
+
+/**
+ * Trae elementos por lotes en lugar de todos de golpe.
+ *
+ * Pedir de una vez decenas de miles de elementos bloquea el navegador (era el
+ * caso de "cuando son muchos elementos se muere"). Aqui se cuenta primero y se
+ * traen de PAGE_SIZE en PAGE_SIZE hasta `maxTotal`, informando si quedaron
+ * elementos fuera para que la interfaz lo advierta.
+ *
+ * Si el servicio no soporta paginacion se hace una unica consulta acotada.
+ */
+export async function pagedQueryFeatures(
+  layer: FeatureLayer,
+  options: SafeQueryOptions,
+  maxTotal: number,
+): Promise<PagedResult> {
+  await layer.load();
+
+  const makeQuery = () => {
+    const q = layer.createQuery();
+    if (options.where !== undefined) q.where = options.where;
+    if (options.geometry) q.geometry = options.geometry as any;
+    if (options.spatialRelationship) q.spatialRelationship = options.spatialRelationship;
+    if (options.outFields) q.outFields = options.outFields;
+    if (options.returnGeometry !== undefined) q.returnGeometry = options.returnGeometry;
+    return q;
+  };
+
+  // Cuenta previa: permite avisar del volumen sin descargar nada.
+  let total = 0;
+  try {
+    total = await layer.queryFeatureCount(makeQuery());
+  } catch {
+    total = 0;
+  }
+
+  if (!supportsPagination(layer)) {
+    const features = await safeQueryFeatures(layer, { ...options, limit: maxTotal });
+    return {
+      features,
+      total: total || features.length,
+      truncated: total > features.length,
+    };
+  }
+
+  const features: Graphic[] = [];
+  const objectIdField = layer.objectIdField;
+
+  for (let start = 0; start < maxTotal; start += PAGE_SIZE) {
+    const q = makeQuery();
+    q.start = start;
+    q.num = Math.min(PAGE_SIZE, maxTotal - start);
+    // La paginacion exige un orden estable para no repetir ni saltar registros.
+    if (objectIdField) q.orderByFields = [objectIdField];
+
+    const page = await layer.queryFeatures(q);
+    const batch = page.features ?? [];
+    features.push(...batch);
+    if (batch.length < q.num) break; // no hay mas
+  }
+
+  return {
+    features,
+    total: total || features.length,
+    truncated: total > features.length,
+  };
+}

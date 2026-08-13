@@ -1,49 +1,37 @@
 /**
- * Herramienta Street View (RF-GSV): permite hacer clic en cualquier punto del
- * mapa para abrir Google Street View en esa ubicacion.
+ * Herramienta Street View (RF-GSV): activa el modo "elegir punto en el mapa".
+ * El clic lo atiende `MapInteractions`; aqui solo se conmuta el modo y se
+ * informa del estado.
  *
- * Si no hay clave de Google configurada, Street View se abre en una ventana
- * emergente independiente del navegador (la URL publica de Google Maps no
- * requiere API key). Con clave, se incrusta en el panel flotante de la app.
+ * Sin clave de Google, Street View se abre en una ventana emergente del
+ * navegador y se REUTILIZA la misma al elegir otro punto. Mientras esta abierta,
+ * el mapa muestra un muneco en la ubicacion que se esta viendo.
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { CalciteButton, CalciteNotice } from '@esri/calcite-components-react';
-import { useMapStore } from '@/store/useMapStore';
 import { useStreetViewStore } from '@/store/useStreetViewStore';
-import { toLatLong } from '@/services/projectionService';
+import { useInteractionStore } from '@/store/useInteractionStore';
 import { getGoogleKey } from '@/services/googleStreetView';
 import { useI18n } from '@/i18n/useI18n';
 
 export function StreetViewTool() {
-  const view = useMapStore((s) => s.view);
-  const pickOnMap = useStreetViewStore((s) => s.pickOnMap);
-  const setPickOnMap = useStreetViewStore((s) => s.setPickOnMap);
-  const openAt = useStreetViewStore((s) => s.openAt);
+  const mode = useInteractionStore((s) => s.mode);
+  const setMode = useInteractionStore((s) => s.setMode);
+  const resetMode = useInteractionStore((s) => s.reset);
+  const { open, latitude, longitude, close } = useStreetViewStore();
   const { t } = useI18n();
-  const handleRef = useRef<{ remove: () => void } | null>(null);
-  const [lastPoint, setLastPoint] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!view || !pickOnMap) return;
-    const handle = view.on('click', async (event) => {
-      if (!event.mapPoint) return;
-      event.stopPropagation(); // no abrir el popup del elemento al elegir punto
-      const { latitude, longitude } = await toLatLong(event.mapPoint);
-      setLastPoint(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
-      openAt(latitude, longitude);
-    });
-    handleRef.current = handle as unknown as { remove: () => void };
-    // Cursor de "seleccion" mientras el modo esta activo.
-    if (view.container) view.container.style.cursor = 'crosshair';
-    return () => {
-      handleRef.current?.remove();
-      handleRef.current = null;
-      if (view.container) view.container.style.cursor = '';
-    };
-  }, [view, pickOnMap, openAt]);
+  const picking = mode === 'streetview';
 
-  // Desactiva el modo al salir del panel.
-  useEffect(() => () => setPickOnMap(false), [setPickOnMap]);
+  // Al salir del panel se vuelve al modo por defecto.
+  useEffect(
+    () => () => {
+      if (useInteractionStore.getState().mode === 'streetview') {
+        useInteractionStore.getState().reset();
+      }
+    },
+    [],
+  );
 
   return (
     <div className="panel-section">
@@ -54,20 +42,37 @@ export function StreetViewTool() {
       )}
 
       <CalciteButton
-        iconStart={pickOnMap ? 'x' : 'road-sign'}
-        kind={pickOnMap ? 'danger' : 'brand'}
-        onClick={() => setPickOnMap(!pickOnMap)}
+        iconStart={picking ? 'x' : 'road-sign'}
+        kind={picking ? 'danger' : 'brand'}
+        onClick={() => (picking ? resetMode() : setMode('streetview'))}
       >
-        {pickOnMap ? t('sv.pickOnMapActive') : t('sv.pickOnMap')}
+        {picking ? t('sv.pickOnMapActive') : t('sv.pickOnMap')}
       </CalciteButton>
 
-      {pickOnMap && (
+      {picking && (
         <CalciteNotice open icon="cursor-click" scale="s">
           <div slot="message">{t('sv.pickHint')}</div>
         </CalciteNotice>
       )}
 
-      {lastPoint && <p className="muted">{lastPoint}</p>}
+      {open && latitude != null && longitude != null && (
+        <>
+          <p className="muted">
+            {t('sv.currentPoint', {
+              lat: latitude.toFixed(6),
+              lng: longitude.toFixed(6),
+            })}
+          </p>
+          <CalciteButton
+            appearance="outline"
+            kind="neutral"
+            iconStart="x"
+            onClick={close}
+          >
+            {t('sv.closeAndRemove')}
+          </CalciteButton>
+        </>
+      )}
     </div>
   );
 }

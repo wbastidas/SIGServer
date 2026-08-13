@@ -126,11 +126,32 @@ export interface SelectionConfig {
   fieldsByLayer?: Record<string, SelectionFieldConfig[]>;
 }
 
+/**
+ * Que se exporta al CSV (RF-SEL-05). Independiente de lo que se MUESTRA en la
+ * tabla: en pantalla interesan pocas columnas, en el archivo suelen hacer falta
+ * mas. Los valores se exportan tal y como estan almacenados (sin traducir
+ * dominios) para poder cruzarlos con la base de datos.
+ */
+export interface ExportConfig {
+  /** Campos por defecto. Vacio u omitido = todos los atributos disponibles. */
+  fields?: SelectionFieldConfig[];
+  /** Campos especificos por capa (misma clave que en selection.fieldsByLayer). */
+  fieldsByLayer?: Record<string, SelectionFieldConfig[]>;
+  /**
+   * Anadir columnas de geometria: X/Y en puntos y X/Y inicial y final en
+   * lineas. Activado por defecto.
+   */
+  includeGeometry?: boolean;
+  /** Anadir una columna con el nombre de la capa de origen. */
+  includeLayerColumn?: boolean;
+}
+
 export interface AppConfig {
   app: AppMeta;
   map: MapConfig;
   goto: GotoConfig;
   selection?: SelectionConfig;
+  export?: ExportConfig;
   filters: FilterConfig[];
   measure: MeasureConfig;
   print: PrintConfig;

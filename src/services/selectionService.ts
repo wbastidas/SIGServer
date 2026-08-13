@@ -13,12 +13,16 @@ import type Graphic from '@arcgis/core/Graphic';
 import type Geometry from '@arcgis/core/geometry/Geometry';
 import { featuresToCsv } from './queryUtils';
 import { getQueryableLayers, onlyVisible, type QueryableLayer } from './layerRegistry';
-import { safeQueryFeatures } from './safeQuery';
+import { pagedQueryFeatures } from './safeQuery';
 
 export { featuresToCsv };
 
-/** Maximo de elementos devueltos por capa (RNF-PERF-03). */
-const MAX_PER_LAYER = 500;
+/**
+ * Maximo de elementos traidos por capa. Se traen por lotes de 1000; superado
+ * este techo se avisa al usuario en lugar de intentar cargarlo todo y colgar
+ * el navegador (RNF-PERF-03).
+ */
+const MAX_PER_LAYER = 5000;
 
 /** Tolerancia del clic, en pixeles de pantalla. */
 const CLICK_TOLERANCE_PX = 6;
@@ -27,6 +31,10 @@ export interface SelectionResult {
   features: Graphic[];
   /** Titulo de la capa de la que proviene cada grupo, para la tabla. */
   byLayer: { title: string; features: Graphic[] }[];
+  /** Total de coincidencias en el servidor (puede superar lo traido). */
+  total: number;
+  /** true si se alcanzo el techo y quedaron elementos sin traer. */
+  truncated: boolean;
 }
 
 /**
@@ -67,27 +75,35 @@ async function queryLayers(
 ): Promise<SelectionResult> {
   const byLayer: { title: string; features: Graphic[] }[] = [];
   const all: Graphic[] = [];
+  let total = 0;
+  let truncated = false;
 
-  // Consulta en paralelo: una capa lenta no bloquea al resto.
+  // Consulta en paralelo: una capa lenta no bloquea al resto. Cada capa se trae
+  // por lotes para no bloquear el navegador con selecciones grandes.
   const settled = await Promise.allSettled(
     layers.map(async (ql) => {
-      const features = await safeQueryFeatures(ql.layer, {
-        geometry: geometry as __esri.Geometry,
-        spatialRelationship: 'intersects',
-        outFields: ['*'],
-        returnGeometry: true,
-        limit: MAX_PER_LAYER,
-      });
-      return { title: ql.title, features };
+      const page = await pagedQueryFeatures(
+        ql.layer,
+        {
+          geometry: geometry as __esri.Geometry,
+          spatialRelationship: 'intersects',
+          outFields: ['*'],
+          returnGeometry: true,
+        },
+        MAX_PER_LAYER,
+      );
+      return { title: ql.title, ...page };
     }),
   );
 
   for (const res of settled) {
     if (res.status !== 'fulfilled') continue; // capa sin soporte de consulta
     if (res.value.features.length === 0) continue;
-    byLayer.push(res.value);
+    byLayer.push({ title: res.value.title, features: res.value.features });
     all.push(...res.value.features);
+    total += res.value.total;
+    if (res.value.truncated) truncated = true;
   }
 
-  return { features: all, byLayer };
+  return { features: all, byLayer, total, truncated };
 }

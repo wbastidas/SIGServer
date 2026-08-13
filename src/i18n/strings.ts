@@ -79,6 +79,13 @@ export type LocaleKey =
   | 'selection.emptyHint'
   | 'selection.zoomChecked'
   | 'selection.checkAll'
+  | 'selection.truncated'
+  | 'selection.modeOff'
+  | 'selection.modeOffHint'
+  | 'selection.stopMode'
+  | 'selection.filter'
+  | 'selection.filterPlaceholder'
+  | 'selection.filterNoMatch'
   | 'table.resize'
   | 'selection.collapse'
   | 'selection.expand'
@@ -121,6 +128,8 @@ export type LocaleKey =
   | 'table.loading'
   | 'table.hintVisible'
   | 'table.hintAll'
+  | 'table.filter'
+  | 'table.filterPlaceholder'
   // Zoom a capa
   | 'layers.zoomTo'
   | 'layers.zoomToTitle'
@@ -140,6 +149,8 @@ export type LocaleKey =
   | 'sv.pickOnMapActive'
   | 'sv.pickHint'
   | 'sv.noKeyHint'
+  | 'sv.currentPoint'
+  | 'sv.closeAndRemove'
   | 'tool.streetView'
   | 'panel.streetView';
 
@@ -220,6 +231,13 @@ const esEC: Dictionary = {
   'selection.emptyHint': 'Todavia no hay elementos seleccionados. Use la herramienta de seleccion sobre el mapa.',
   'selection.zoomChecked': 'Encuadrar marcados ({n})',
   'selection.checkAll': 'Marcar todo el grupo',
+  'selection.truncated': 'Se muestran {shown} de {total} elementos. Acote la seleccion para verlos todos.',
+  'selection.modeOff': 'Seleccion desactivada. Al pulsar el mapa se identifican los elementos.',
+  'selection.modeOffHint': 'Volver al modo identificar',
+  'selection.stopMode': 'Terminar',
+  'selection.filter': 'Filtrar resultados',
+  'selection.filterPlaceholder': 'Escriba para filtrar filas...',
+  'selection.filterNoMatch': 'Ninguna fila coincide con el filtro.',
   'table.resize': 'Arrastre para cambiar la altura',
   'selection.collapse': 'Contraer',
   'selection.expand': 'Expandir',
@@ -265,6 +283,8 @@ const esEC: Dictionary = {
   'table.loading': 'Cargando capas...',
   'table.hintVisible': 'Muestra unicamente los elementos dentro del area visible del mapa.',
   'table.hintAll': 'Muestra todos los elementos de la capa (limitado por el servicio).',
+  'table.filter': 'Filtro (expresion SQL)',
+  'table.filterPlaceholder': "Ej.: ALIMENTADORID = 'A1'",
 
   'layers.zoomTo': 'Zoom a la capa',
   'layers.zoomToTitle': 'Acercar el mapa a la extension completa de la capa',
@@ -288,7 +308,9 @@ const esEC: Dictionary = {
   'sv.pickOnMapActive': 'Cancelar seleccion',
   'sv.pickHint': 'Haga clic en cualquier lugar del mapa para abrir Street View en ese punto.',
   'sv.noKeyHint':
-    'Sin clave de Google configurada: Street View se abre en una ventana emergente independiente del navegador (no requiere clave).',
+    'Sin clave de Google configurada: Street View se abre en una ventana emergente del navegador (no requiere clave). Al elegir otro punto se reutiliza la misma ventana.',
+  'sv.currentPoint': 'Viendo: {lat}, {lng}',
+  'sv.closeAndRemove': 'Cerrar Street View',
   'tool.streetView': 'Street View',
   'panel.streetView': 'Google Street View',
 };
@@ -367,6 +389,13 @@ const enUS: Dictionary = {
   'selection.emptyHint': 'No features selected yet. Use the selection tool on the map.',
   'selection.zoomChecked': 'Zoom to checked ({n})',
   'selection.checkAll': 'Check all in group',
+  'selection.truncated': 'Showing {shown} of {total} features. Narrow the selection to see them all.',
+  'selection.modeOff': 'Selection off. Clicking the map identifies features instead.',
+  'selection.modeOffHint': 'Back to identify mode',
+  'selection.stopMode': 'Finish',
+  'selection.filter': 'Filter results',
+  'selection.filterPlaceholder': 'Type to filter rows...',
+  'selection.filterNoMatch': 'No row matches the filter.',
   'table.resize': 'Drag to resize',
   'selection.collapse': 'Collapse',
   'selection.expand': 'Expand',
@@ -412,6 +441,8 @@ const enUS: Dictionary = {
   'table.loading': 'Loading layers...',
   'table.hintVisible': 'Shows only features within the current map extent.',
   'table.hintAll': 'Shows all features of the layer (limited by the service).',
+  'table.filter': 'Filter (SQL expression)',
+  'table.filterPlaceholder': "e.g. ALIMENTADORID = 'A1'",
 
   'layers.zoomTo': 'Zoom to layer',
   'layers.zoomToTitle': 'Zoom the map to the full extent of the layer',
@@ -435,7 +466,9 @@ const enUS: Dictionary = {
   'sv.pickOnMapActive': 'Cancel picking',
   'sv.pickHint': 'Click anywhere on the map to open Street View at that point.',
   'sv.noKeyHint':
-    'No Google key configured: Street View opens in a separate browser popup window (no key required).',
+    'No Google key configured: Street View opens in a browser popup window (no key required). Picking another point reuses the same window.',
+  'sv.currentPoint': 'Viewing: {lat}, {lng}',
+  'sv.closeAndRemove': 'Close Street View',
   'tool.streetView': 'Street View',
   'panel.streetView': 'Google Street View',
 };

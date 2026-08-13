@@ -24,14 +24,49 @@ export function streetViewUrl(latitude: number, longitude: number): string {
  * panorama dentro de la app sin API key). Devuelve false si el navegador
  * bloqueo la ventana emergente.
  */
+/** Referencia a la ventana emergente, para reutilizarla en vez de abrir otra. */
+let streetViewWindow: Window | null = null;
+
 export function openStreetViewWindow(latitude: number, longitude: number): boolean {
+  const url = streetViewUrl(latitude, longitude);
   const features = 'width=1000,height=700,menubar=no,toolbar=no,location=yes,resizable=yes';
-  const win = window.open(streetViewUrl(latitude, longitude), 'sig-street-view', features);
+
+  // Si ya hay una ventana abierta se NAVEGA en ella; asi al elegir otro punto
+  // no se acumulan ventanas nuevas.
+  if (streetViewWindow && !streetViewWindow.closed) {
+    try {
+      streetViewWindow.location.href = url;
+      streetViewWindow.focus();
+      return true;
+    } catch {
+      // Si el navegador impide navegarla (otro origen), se reabre por nombre.
+    }
+  }
+
+  const win = window.open(url, 'sig-street-view', features);
   if (win) {
+    streetViewWindow = win;
     win.focus();
     return true;
   }
   return false;
+}
+
+/** true si la ventana emergente sigue abierta. */
+export function isStreetViewWindowOpen(): boolean {
+  return !!streetViewWindow && !streetViewWindow.closed;
+}
+
+/** Cierra la ventana emergente si esta abierta. */
+export function closeStreetViewWindow(): void {
+  if (streetViewWindow && !streetViewWindow.closed) {
+    try {
+      streetViewWindow.close();
+    } catch {
+      /* el navegador puede impedir cerrarla */
+    }
+  }
+  streetViewWindow = null;
 }
 
 export function loadGoogleMaps(): Promise<typeof google | null> {

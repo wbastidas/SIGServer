@@ -9,9 +9,14 @@
  *    (sincronizacion tabla -> mapa), y el boton de encuadre lleva a ellos.
  *  - Los valores con dominio se muestran con su descripcion, no con el codigo.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type Graphic from '@arcgis/core/Graphic';
-import { CalciteButton, CalciteCheckbox } from '@esri/calcite-components-react';
+import {
+  CalciteButton,
+  CalciteCheckbox,
+  CalciteInputText,
+  CalciteNotice,
+} from '@esri/calcite-components-react';
 import { useMapStore } from '@/store/useMapStore';
 import { useConfigStore } from '@/store/useConfigStore';
 import {
@@ -19,7 +24,7 @@ import {
   markSelectedOnMap,
   zoomToGeometries,
 } from '@/services/highlightService';
-import { featuresToCsv } from '@/services/queryUtils';
+import { buildCsv } from '@/services/csvExport';
 import { getDomainMap, describeValue, type DomainMap } from '@/services/domainUtils';
 import {
   collectFieldNames,
@@ -35,10 +40,12 @@ export function SelectionResults() {
   const graphicsLayer = useMapStore((s) => s.graphicsLayer);
   const clearSelection = useMapStore((s) => s.clearSelection);
   const selectionCfg = useConfigStore((s) => s.config?.app.selection);
+  const exportCfg = useConfigStore((s) => s.config?.app.export);
   const { t } = useI18n();
 
   const [checked, setChecked] = useState<Set<string>>(new Set());
   const [domains, setDomains] = useState<Record<string, DomainMap>>({});
+  const [filter, setFilter] = useState('');
 
   const keyOf = (gi: number, i: number) => `${gi}:${i}`;
 
@@ -49,10 +56,38 @@ export function SelectionResults() {
     [selectionCfg],
   );
 
-  // Al cambiar la seleccion del mapa se reinician las casillas.
+  // Al cambiar la seleccion del mapa se reinician casillas y filtro.
   useEffect(() => {
     setChecked(new Set());
+    setFilter('');
   }, [groups]);
+
+  /**
+   * Filtro sobre las filas ya seleccionadas: busca el texto en cualquiera de
+   * las columnas visibles (incluida la descripcion del dominio, que es lo que
+   * el usuario esta leyendo). Se conservan los indices originales para que las
+   * casillas sigan apuntando a la fila correcta.
+   */
+  const visibleGroups = useMemo(() => {
+    const term = filter.trim().toLowerCase();
+    return groups.map((group, gi) => {
+      const columns = columnsFor(group.title, group.features);
+      const rows = group.features
+        .map((feature, index) => ({ feature, index }))
+        .filter(({ feature }) => {
+          if (!term) return true;
+          return columns.some((c) => {
+            const raw = feature.attributes?.[c.name];
+            const domain = domains[`${group.title}|${c.name}`];
+            const shown = domain ? describeValue(domain, raw) : String(raw ?? '');
+            return shown.toLowerCase().includes(term);
+          });
+        });
+      return { group, gi, columns, rows };
+    });
+  }, [groups, filter, columnsFor, domains]);
+
+  const visibleRowCount = visibleGroups.reduce((n, g) => n + g.rows.length, 0);
 
   // Marca en el mapa lo que este marcado en la tabla.
   useEffect(() => {
@@ -99,10 +134,10 @@ export function SelectionResults() {
     });
   }
 
-  function toggleGroup(gi: number, features: Graphic[]) {
+  /** Marca o desmarca un conjunto de filas (las visibles tras el filtro). */
+  function toggleRows(keys: string[]) {
     setChecked((prev) => {
       const next = new Set(prev);
-      const keys = features.map((_, i) => keyOf(gi, i));
       const allOn = keys.every((k) => next.has(k));
       keys.forEach((k) => (allOn ? next.delete(k) : next.add(k)));
       return next;
@@ -130,14 +165,27 @@ export function SelectionResults() {
   }
 
   function exportCsv() {
-    // Exporta lo marcado; si no hay nada marcado, toda la seleccion.
-    const marked = groups.flatMap((g, gi) =>
-      g.features.filter((_, i) => checked.has(keyOf(gi, i))),
-    );
-    const rows = marked.length > 0 ? marked : groups.flatMap((g) => g.features);
-    const csv = featuresToCsv(rows);
-    if (!csv) return;
-    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    // Se exporta el VALOR ALMACENADO (no la descripcion del dominio) y se
+    // anaden las columnas de geometria: X/Y en puntos, X/Y inicial y final en
+    // lineas. Que campos salen se define en `export` de app-config.json.
+    // Un CSV por capa concatenado, para no mezclar esquemas distintos.
+    const blocks: string[] = [];
+    for (const [gi, group] of groups.entries()) {
+      const marked = group.features.filter((_, i) => checked.has(keyOf(gi, i)));
+      const rows = marked.length > 0 ? marked : group.features;
+      if (rows.length === 0) continue;
+      const csv = buildCsv(rows as never[], {
+        cfg: exportCfg,
+        layerTitle: group.title,
+        includeLayerColumn: exportCfg?.includeLayerColumn ?? true,
+      });
+      if (csv) blocks.push(csv);
+    }
+    if (blocks.length === 0) return;
+
+    const blob = new Blob(['﻿' + blocks.join('\r\n\r\n')], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -184,17 +232,34 @@ export function SelectionResults() {
         </CalciteButton>
       </div>
 
-      {groups.map((group, gi) => {
-        const columns = columnsFor(group.title, group.features);
-        const allOn =
-          group.features.length > 0 &&
-          group.features.every((_, i) => checked.has(keyOf(gi, i)));
+      {/* Filtro sobre las filas ya seleccionadas. */}
+      <CalciteInputText
+        value={filter}
+        clearable
+        scale="s"
+        placeholder={t('selection.filterPlaceholder')}
+        label={t('selection.filter')}
+        onCalciteInputTextInput={(e: any) => setFilter(e.target.value)}
+      />
+
+      {filter && visibleRowCount === 0 && (
+        <CalciteNotice open kind="info" icon scale="s" style={{ marginTop: '0.5rem' }}>
+          <div slot="message">{t('selection.filterNoMatch')}</div>
+        </CalciteNotice>
+      )}
+
+      {visibleGroups.map(({ group, gi, columns, rows }) => {
+        if (rows.length === 0) return null;
+        const allOn = rows.every(({ index }) => checked.has(keyOf(gi, index)));
         return (
           <div className="selection-group" key={`${group.title}-${gi}`}>
             {selectionCfg?.showLayerName !== false && group.title && (
               <h4 className="selection-group-title">
                 {group.title}
-                <span className="count">({group.features.length})</span>
+                <span className="count">
+                  ({rows.length}
+                  {rows.length !== group.features.length ? ` / ${group.features.length}` : ''})
+                </span>
               </h4>
             )}
             <table className="dock-table">
@@ -204,7 +269,9 @@ export function SelectionResults() {
                     <CalciteCheckbox
                       checked={allOn || undefined}
                       title={t('selection.checkAll')}
-                      onCalciteCheckboxChange={() => toggleGroup(gi, group.features)}
+                      onCalciteCheckboxChange={() =>
+                        toggleRows(rows.map(({ index }) => keyOf(gi, index)))
+                      }
                     />
                   </th>
                   {columns.map((c) => (
@@ -213,8 +280,8 @@ export function SelectionResults() {
                 </tr>
               </thead>
               <tbody>
-                {group.features.map((f, i) => {
-                  const key = keyOf(gi, i);
+                {rows.map(({ feature, index }) => {
+                  const key = keyOf(gi, index);
                   const isChecked = checked.has(key);
                   return (
                     <tr key={key} className={isChecked ? 'is-active' : undefined}>
@@ -229,12 +296,12 @@ export function SelectionResults() {
                       </td>
                       {columns.map((c) => {
                         const domain = domains[`${group.title}|${c.name}`];
-                        const raw = f.attributes?.[c.name];
+                        const raw = feature.attributes?.[c.name];
                         return (
                           <td
                             key={c.name}
                             title={t('selection.goTo')}
-                            onClick={() => focusFeature(f)}
+                            onClick={() => focusFeature(feature)}
                           >
                             {domain ? describeValue(domain, raw) : String(raw ?? '')}
                           </td>

@@ -16,6 +16,8 @@ import {
 import { MapContainer } from '@/components/map/MapContainer';
 import { MapControls } from '@/components/map/MapControls';
 import { CoordinateConversion } from '@/components/map/CoordinateConversion';
+import { MapInteractions } from '@/components/map/MapInteractions';
+import { StreetViewMarker } from '@/components/map/StreetViewMarker';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { SearchPanel } from '@/components/panels/SearchPanel';
 import { LayerListPanel } from '@/components/panels/LayerListPanel';
@@ -150,6 +152,10 @@ export function AppShell() {
 
       <div className="map-region">
         <MapContainer />
+        {/* Manejo persistente de clics: identify, seleccion y Street View.
+            Al no depender de los paneles, seguir funcionando aunque se cierren. */}
+        <MapInteractions />
+        <StreetViewMarker />
         <MapControls />
         <CoordinateConversion />
         <ErrorBoundary name={t('panel.table')}>

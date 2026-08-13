@@ -12,7 +12,7 @@ import { useI18n } from '@/i18n/useI18n';
 import './streetview.css';
 
 export function StreetViewPanel() {
-  const { open, latitude, longitude, close, popupBlocked } = useStreetViewStore();
+  const { open, latitude, longitude, close, popupBlocked, embedded } = useStreetViewStore();
   const enabled = useConfigStore((s) => s.config?.app.streetView.enabled);
   const { t } = useI18n();
   const panoRef = useRef<HTMLDivElement>(null);
@@ -63,7 +63,10 @@ export function StreetViewPanel() {
     };
   }, [open, latitude, longitude, popupBlocked]);
 
-  if (!open || !enabled) return null;
+  // El panel solo se muestra si el panorama va incrustado (hay clave) o si la
+  // ventana emergente fue bloqueada; con ventana externa el mapa solo marca el
+  // muneco y no hace falta panel dentro de la app.
+  if (!enabled || !open || (!embedded && !popupBlocked)) return null;
 
   return (
     <div className="street-view-panel" role="dialog" aria-label="Google Street View">

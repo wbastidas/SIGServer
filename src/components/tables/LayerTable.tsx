@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import FeatureTable from '@arcgis/core/widgets/FeatureTable';
 import * as reactiveUtils from '@arcgis/core/core/reactiveUtils';
 import {
+  CalciteInputText,
   CalciteLabel,
   CalciteOption,
   CalciteSegmentedControl,
@@ -31,6 +32,7 @@ export function LayerTable() {
   const [selectedId, setSelectedId] = useState('');
   const [scope, setScope] = useState<Scope>('visible');
   const [loading, setLoading] = useState(true);
+  const [where, setWhere] = useState('');
 
   useEffect(() => {
     if (!view) return;
@@ -56,18 +58,43 @@ export function LayerTable() {
     tableRef.current?.destroy();
     watchRef.current?.remove();
 
+    // Importante: las capas derivadas de subcapas de un MapImageLayer NO estan
+    // anadidas al mapa. Si a FeatureTable se le pasa `view` con una capa que no
+    // esta en el mapa, no consigue su layerView y la tabla se queda vacia (era
+    // el caso de "en la tabla no se visualiza nada"). Para esas capas se crea
+    // la tabla sin `view`: los datos se muestran igual y el filtro por
+    // extension se aplica a mano con `filterGeometry`.
     const table = new FeatureTable({
-      view,
+      ...(target.fromSublayer ? {} : { view, highlightEnabled: true }),
       layer: target.layer,
       container: hostRef.current,
-      visibleElements: { header: false, menu: true, selectionColumn: false },
-    });
+      // La columna de seleccion permite marcar filas.
+      visibleElements: { header: false, menu: true, selectionColumn: true },
+      // Trae las filas por lotes en lugar de todo de golpe: con capas grandes
+      // cargarlo todo bloqueaba el navegador (RNF-PERF-03).
+      pageSize: 100,
+    } as never);
     tableRef.current = table;
 
     const applyFilter = () => {
       table.filterGeometry = scope === 'visible' ? view.extent : (null as any);
     };
     applyFilter();
+    // Filtro por atributos sobre la tabla (clausula WHERE del servicio).
+    (table as any).filterBySelectionEnabled = false;
+    if (where.trim()) {
+      try {
+        (table.layer as any).definitionExpression = where.trim();
+      } catch {
+        /* expresion invalida: se ignora hasta que el usuario la corrija */
+      }
+    } else {
+      try {
+        (table.layer as any).definitionExpression = null;
+      } catch {
+        /* nada que limpiar */
+      }
+    }
 
     if (scope === 'visible') {
       watchRef.current = reactiveUtils.watch(
@@ -84,7 +111,7 @@ export function LayerTable() {
       table.destroy();
       tableRef.current = null;
     };
-  }, [view, layers, selectedId, scope]);
+  }, [view, layers, selectedId, scope, where]);
 
   if (loading) return <p className="muted">{t('table.loading')}</p>;
   if (layers.length === 0) return <p className="muted">{t('table.noLayers')}</p>;
@@ -118,6 +145,16 @@ export function LayerTable() {
             {t('table.scopeAll')}
           </CalciteSegmentedControlItem>
         </CalciteSegmentedControl>
+
+        <CalciteLabel style={{ flex: '1 1 260px' }}>
+          {t('table.filter')}
+          <CalciteInputText
+            scale="s"
+            clearable
+            placeholder={t('table.filterPlaceholder')}
+            onCalciteInputTextChange={(e: any) => setWhere(e.target.value)}
+          />
+        </CalciteLabel>
       </div>
 
       <div ref={hostRef} className="layer-table-host" />

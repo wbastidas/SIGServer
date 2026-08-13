@@ -39,6 +39,10 @@
   min-height: 0;
   overflow: auto;
   padding: 0.5rem 0.75rem 0.75rem;
+  /* Columna flexible: la tabla de capa necesita heredar una altura real,
+     si no el widget FeatureTable se renderiza con altura 0 y no se ve nada. */
+  display: flex;
+  flex-direction: column;
 }
 
 /* --- Resultados de seleccion --- */
@@ -116,12 +120,17 @@
   min-width: 220px;
 }
 
+/* El widget FeatureTable exige un contenedor con altura efectiva. */
 .layer-table-host {
-  height: calc(100% - 3.2rem);
-  min-height: 140px;
+  flex: 1 1 auto;
+  min-height: 180px;
   border: 1px solid var(--calcite-color-border-3);
   border-radius: 4px;
   overflow: hidden;
+}
+
+.layer-table-host .esri-feature-table {
+  height: 100%;
 }
 
 @media (max-width: 640px) {

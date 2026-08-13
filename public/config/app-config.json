@@ -29,6 +29,12 @@
     "showLayerName": true,
     "fieldsByLayer": {}
   },
+  "export": {
+    "fields": [],
+    "fieldsByLayer": {},
+    "includeGeometry": true,
+    "includeLayerColumn": true
+  },
   "goto": {
     "allowedInputSR": [32717, 4326],
     "defaultInputSR": 32717,
