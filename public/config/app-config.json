@@ -24,9 +24,10 @@
   "selection": {
     "fields": [
       { "name": "OBJECTID", "label": "OBJECTID" },
-      { "name": "CODIGO_ESTRUCTURA", "label": "Codigo de estructura" }
+      { "name": "GLOBALID", "label": "GLOBALID" }
     ],
-    "showLayerName": true
+    "showLayerName": true,
+    "fieldsByLayer": {}
   },
   "goto": {
     "allowedInputSR": [32717, 4326],

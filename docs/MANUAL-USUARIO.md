@@ -91,9 +91,20 @@ Selecciona elementos y los lista en una tabla.
 1. Elija el modo: **Clic**, **Rectángulo** o **Polígono**.
    - *Clic:* pulse sobre un elemento del mapa.
    - *Rectángulo/Polígono:* dibuje un área; se seleccionan los elementos dentro.
-2. Los seleccionados aparecen en la **tabla** inferior.
-3. **Haga clic en una fila** → el mapa hace zoom y resalta ese elemento.
-4. **CSV** exporta la selección; **Limpiar** la borra.
+2. Los seleccionados aparecen en el **panel de tablas bajo el mapa**, agrupados
+   por capa (así siempre se sabe qué tipo de elemento es). Puede arrastrar el
+   borde superior del panel para cambiar su altura.
+3. **Marque las casillas** de las filas que le interesen: los elementos marcados
+   se resaltan **en el mapa**. La casilla de la cabecera marca todo el grupo.
+4. **Haga clic en una fila** (fuera de la casilla) → el mapa hace zoom a ese
+   elemento y abre su información.
+5. **Encuadrar marcados** lleva el mapa a todos los elementos marcados a la vez.
+6. **CSV** exporta lo marcado (o toda la selección si no hay nada marcado);
+   **Limpiar** borra la selección.
+
+> Las columnas de esta tabla se configuran en `app-config.json → selection`.
+> Por defecto se muestran `OBJECTID` y `GLOBALID`; con `fieldsByLayer` puede
+> añadir campos concretos para ciertas capas sin cambiar el resto.
 
 > Consulta las capas **encendidas** en ese momento, tanto si están publicadas como
 > FeatureLayer como si vienen de un MapImageLayer. Si no obtiene resultados,

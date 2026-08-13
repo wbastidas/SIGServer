@@ -77,6 +77,8 @@ export type LocaleKey =
   | 'selection.hintDraw'
   | 'selection.viewTable'
   | 'selection.emptyHint'
+  | 'selection.zoomChecked'
+  | 'selection.checkAll'
   | 'table.resize'
   | 'selection.collapse'
   | 'selection.expand'
@@ -216,6 +218,8 @@ const esEC: Dictionary = {
   'selection.hintDraw': 'Dibuje un area sobre el mapa para seleccionar los elementos que contiene.',
   'selection.viewTable': 'Ver tabla',
   'selection.emptyHint': 'Todavia no hay elementos seleccionados. Use la herramienta de seleccion sobre el mapa.',
+  'selection.zoomChecked': 'Encuadrar marcados ({n})',
+  'selection.checkAll': 'Marcar todo el grupo',
   'table.resize': 'Arrastre para cambiar la altura',
   'selection.collapse': 'Contraer',
   'selection.expand': 'Expandir',
@@ -361,6 +365,8 @@ const enUS: Dictionary = {
   'selection.hintDraw': 'Draw an area on the map to select the features inside.',
   'selection.viewTable': 'View table',
   'selection.emptyHint': 'No features selected yet. Use the selection tool on the map.',
+  'selection.zoomChecked': 'Zoom to checked ({n})',
+  'selection.checkAll': 'Check all in group',
   'table.resize': 'Drag to resize',
   'selection.collapse': 'Collapse',
   'selection.expand': 'Expand',

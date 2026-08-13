@@ -86,6 +86,14 @@
   cursor: pointer;
 }
 
+/* Columna de casillas: no dispara el zoom al elemento. */
+.dock-table .check-col {
+  width: 34px;
+  text-align: center;
+  cursor: default;
+  padding-inline: 0.35rem;
+}
+
 .dock-table tbody tr:hover {
   background: var(--calcite-color-foreground-2);
 }

@@ -107,10 +107,23 @@ export interface SelectionFieldConfig {
 }
 
 export interface SelectionConfig {
-  /** Columnas a mostrar. Vacio = primeras columnas disponibles. */
+  /** Columnas por defecto para todas las capas. */
   fields: SelectionFieldConfig[];
   /** Mostrar de que capa proviene cada elemento seleccionado. */
   showLayerName?: boolean;
+  /**
+   * Columnas especificas por capa, para mostrar mas campos en ciertos
+   * elementos sin cambiar el resto. La clave puede ser el nombre de la capa
+   * (como aparece en el servicio) o su id de subcapa. Ej.:
+   *   "fieldsByLayer": {
+   *     "Transformadores": [
+   *       { "name": "OBJECTID" },
+   *       { "name": "TRAFO", "label": "Codigo TRAFO" }
+   *     ],
+   *     "9": [ { "name": "OBJECTID" } ]
+   *   }
+   */
+  fieldsByLayer?: Record<string, SelectionFieldConfig[]>;
 }
 
 export interface AppConfig {
