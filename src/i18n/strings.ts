@@ -71,8 +71,6 @@ export type LocaleKey =
   | 'filter.noMatches'
   | 'filter.tooMany'
   // Seleccion / tabla acoplada
-  | 'selection.layer'
-  | 'selection.dock'
   | 'selection.hintClick'
   | 'selection.hintDraw'
   | 'selection.viewTable'
@@ -88,7 +86,6 @@ export type LocaleKey =
   | 'selection.filterNoMatch'
   | 'table.resize'
   | 'selection.collapse'
-  | 'selection.expand'
   // Dibujo
   | 'draw.help'
   // Medicion
@@ -113,7 +110,6 @@ export type LocaleKey =
   | 'selection.rectangle'
   | 'selection.polygon'
   | 'selection.count'
-  | 'selection.hintNoFeature'
   | 'selection.csv'
   | 'selection.goTo'
   | 'selection.querying'
@@ -132,7 +128,6 @@ export type LocaleKey =
   | 'table.filterPlaceholder'
   // Zoom a capa
   | 'layers.zoomTo'
-  | 'layers.zoomToTitle'
   | 'layers.noExtent'
   // Impresion
   | 'print.noService'
@@ -223,8 +218,6 @@ const esEC: Dictionary = {
   'filter.noMatches': 'Ningun valor coincide con la busqueda.',
   'filter.tooMany': 'Mostrando los primeros 300 de {n}. Afine la busqueda.',
 
-  'selection.layer': 'Capa',
-  'selection.dock': 'Tabla',
   'selection.hintClick': 'Haga clic sobre un elemento del mapa para seleccionarlo.',
   'selection.hintDraw': 'Dibuje un area sobre el mapa para seleccionar los elementos que contiene.',
   'selection.viewTable': 'Ver tabla',
@@ -240,7 +233,6 @@ const esEC: Dictionary = {
   'selection.filterNoMatch': 'Ninguna fila coincide con el filtro.',
   'table.resize': 'Arrastre para cambiar la altura',
   'selection.collapse': 'Contraer',
-  'selection.expand': 'Expandir',
 
   'draw.help':
     'Dibuje puntos, lineas, poligonos, rectangulos y circulos. Puede mover, editar y borrar geometrias. Use "Limpiar todo" en la herramienta.',
@@ -266,8 +258,6 @@ const esEC: Dictionary = {
   'selection.rectangle': 'Rectangulo',
   'selection.polygon': 'Poligono',
   'selection.count': '{n} elemento(s) seleccionado(s).',
-  'selection.hintNoFeature':
-    'Nota: configure capas como FeatureLayer (map.operationalMode) para seleccion espacial.',
   'selection.csv': 'CSV',
   'selection.goTo': 'Ir al elemento',
   'selection.querying': 'Consultando capas...',
@@ -287,7 +277,6 @@ const esEC: Dictionary = {
   'table.filterPlaceholder': "Ej.: ALIMENTADORID = 'A1'",
 
   'layers.zoomTo': 'Zoom a la capa',
-  'layers.zoomToTitle': 'Acercar el mapa a la extension completa de la capa',
   'layers.noExtent': 'La capa no informa una extension valida.',
 
   'print.noService':
@@ -381,8 +370,6 @@ const enUS: Dictionary = {
   'filter.noMatches': 'No value matches the search.',
   'filter.tooMany': 'Showing the first 300 of {n}. Refine the search.',
 
-  'selection.layer': 'Layer',
-  'selection.dock': 'Table',
   'selection.hintClick': 'Click a feature on the map to select it.',
   'selection.hintDraw': 'Draw an area on the map to select the features inside.',
   'selection.viewTable': 'View table',
@@ -398,7 +385,6 @@ const enUS: Dictionary = {
   'selection.filterNoMatch': 'No row matches the filter.',
   'table.resize': 'Drag to resize',
   'selection.collapse': 'Collapse',
-  'selection.expand': 'Expand',
 
   'draw.help':
     'Draw points, lines, polygons, rectangles and circles. You can move, edit and delete geometries. Use "Clear all" in the tool.',
@@ -424,8 +410,6 @@ const enUS: Dictionary = {
   'selection.rectangle': 'Rectangle',
   'selection.polygon': 'Polygon',
   'selection.count': '{n} selected feature(s).',
-  'selection.hintNoFeature':
-    'Note: configure layers as FeatureLayer (map.operationalMode) for spatial selection.',
   'selection.csv': 'CSV',
   'selection.goTo': 'Go to feature',
   'selection.querying': 'Querying layers...',
@@ -445,7 +429,6 @@ const enUS: Dictionary = {
   'table.filterPlaceholder': "e.g. ALIMENTADORID = 'A1'",
 
   'layers.zoomTo': 'Zoom to layer',
-  'layers.zoomToTitle': 'Zoom the map to the full extent of the layer',
   'layers.noExtent': 'The layer does not report a valid extent.',
 
   'print.noService':

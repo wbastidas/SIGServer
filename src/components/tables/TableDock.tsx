@@ -7,7 +7,7 @@
  *  - Tabla de capa: el widget FeatureTable con alcance visible / todo.
  */
 import { useCallback, useEffect, useRef } from 'react';
-import { CalciteAction, CalciteTab, CalciteTabNav, CalciteTabTitle, CalciteTabs } from '@esri/calcite-components-react';
+import { CalciteAction } from '@esri/calcite-components-react';
 import { useTableDockStore } from '@/store/useTableDockStore';
 import { useMapStore } from '@/store/useMapStore';
 import { useI18n } from '@/i18n/useI18n';
@@ -67,25 +67,29 @@ export function TableDock() {
       />
 
       <header className="table-dock-head">
-        <CalciteTabs>
-          <CalciteTabNav slot="title-group">
-            <CalciteTabTitle
-              selected={tab === 'selection' || undefined}
-              onCalciteTabsActivate={() => openTab('selection')}
-            >
-              {t('panel.selection')}
-              {selectedCount > 0 ? ` (${selectedCount})` : ''}
-            </CalciteTabTitle>
-            <CalciteTabTitle
-              selected={tab === 'layer' || undefined}
-              onCalciteTabsActivate={() => openTab('layer')}
-            >
-              {t('panel.table')}
-            </CalciteTabTitle>
-          </CalciteTabNav>
-          <CalciteTab />
-          <CalciteTab />
-        </CalciteTabs>
+        {/* Pestanas propias: mas predecibles que calcite-tabs, que gestiona su
+            propio ciclo de vida y aqui solo necesitamos conmutar contenido. */}
+        <nav className="table-dock-tabs" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'selection'}
+            className={tab === 'selection' ? 'is-active' : undefined}
+            onClick={() => openTab('selection')}
+          >
+            {t('panel.selection')}
+            {selectedCount > 0 ? ` (${selectedCount})` : ''}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === 'layer'}
+            className={tab === 'layer' ? 'is-active' : undefined}
+            onClick={() => openTab('layer')}
+          >
+            {t('panel.table')}
+          </button>
+        </nav>
 
         <CalciteAction
           icon="chevron-down"

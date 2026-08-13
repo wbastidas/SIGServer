@@ -11,11 +11,8 @@ import Extent from '@arcgis/core/geometry/Extent';
 import type MapView from '@arcgis/core/views/MapView';
 import type Graphic from '@arcgis/core/Graphic';
 import type Geometry from '@arcgis/core/geometry/Geometry';
-import { featuresToCsv } from './queryUtils';
 import { getQueryableLayers, onlyVisible, type QueryableLayer } from './layerRegistry';
 import { pagedQueryFeatures } from './safeQuery';
-
-export { featuresToCsv };
 
 /**
  * Maximo de elementos traidos por capa. Se traen por lotes de 1000; superado

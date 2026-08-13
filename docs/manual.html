@@ -243,7 +243,7 @@
       <a href="#configuracion"><span class="n">03</span> Configuración</a>
       <a href="#interfaz"><span class="n">04</span> La interfaz</a>
       <a href="#herramientas"><span class="n">05</span> Herramientas</a>
-      <a href="#popups"><span class="n">06</span> Popups y Street View</a>
+      <a href="#popups"><span class="n">06</span> Identificar y Street View</a>
       <a href="#problemas"><span class="n">07</span> Problemas frecuentes</a>
     </nav>
     <div class="rail-foot">
@@ -402,8 +402,13 @@
         </div>
 
         <div class="tool">
-          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg></span><div><h5>Selección / Tabla</h5><div class="rf">RF-SEL</div></div></div>
-          <ol><li>Modo <b>Clic</b>, <b>Rectángulo</b> o <b>Polígono</b>.</li><li>Los seleccionados aparecen en la <b>tabla</b>.</li><li>Clic en una fila → navega; <b>CSV</b> exporta.</li></ol>
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg></span><div><h5>Selección</h5><div class="rf">RF-SEL</div></div></div>
+          <ol><li>Modo <b>Clic</b>, <b>Rectángulo</b> o <b>Polígono</b>.</li><li>Los resultados salen en el <b>panel bajo el mapa</b>, agrupados por capa.</li><li><b>Marque casillas</b> → se resaltan en el mapa; clic en la fila navega a ella.</li><li><b>CSV</b> exporta con coordenadas; <b>Terminar</b> vuelve a identificar.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></span><div><h5>Tabla de atributos</h5><div class="rf">RF-SEL-02</div></div></div>
+          <ol><li>Panel <b>acoplado bajo el mapa</b>, redimensionable, con dos pestañas.</li><li>Elija la <b>capa</b> y el alcance: <b>solo lo visible</b> o <b>ver todo</b>.</li><li>Filtre con una expresión SQL, p. ej. <code>ALIMENTADORID = 'A1'</code>.</li></ol>
         </div>
 
         <div class="tool">
@@ -431,11 +436,11 @@
 
     <!-- 06 POPUPS -->
     <section id="popups">
-      <div class="s-head"><span class="idx">06</span><div><h3>Popups y Street View</h3><p class="sub">La información de cada elemento.</p></div></div>
-      <p class="lead">Al hacer clic sobre un elemento del mapa (o ubicarlo desde una búsqueda) se abre su <b>popup</b>: muestra los atributos configurados, los <b>registros relacionados</b> (por ejemplo, los consumidores de un transformador) y, si está habilitado, un botón <b>Street View</b>.</p>
+      <div class="s-head"><span class="idx">06</span><div><h3>Identificar y Street View</h3><p class="sub">La información de cada elemento.</p></div></div>
+      <p class="lead">Al hacer clic sobre el mapa se <b>identifican todos los elementos bajo ese punto</b>, de todas las capas encendidas, en una sola ventana: use las flechas para recorrerlos y ver el poste, el transformador y la luminaria que coinciden en el mismo sitio. Cada uno indica de qué capa procede, muestra los atributos configurados, los <b>registros relacionados</b> y, si está habilitado, un botón <b>Street View</b>.</p>
       <div class="cards" style="margin-top:16px">
         <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div><h5>Atributos y relacionados</h5><p>Campos con alias, orden y formato definidos en <code>popups.json</code>, más los registros vinculados.</p></div>
-        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><h5>Street View</h5><p>Abre un recuadro flotante en la ubicación del elemento. Redimensionable y cerrable; avisa si no hay cobertura o clave de Google.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><h5>Street View</h5><p>Sin clave de Google se abre en una ventana emergente del navegador, y se reutiliza la misma al elegir otro punto. Un <b>muñeco</b> en el mapa marca la ubicación que se está viendo y desaparece al cerrarla.</p></div>
       </div>
     </section>
 

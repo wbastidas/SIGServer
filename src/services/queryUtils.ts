@@ -54,27 +54,8 @@ export function escapeHtml(value: unknown): string {
     .replace(/'/g, '&#39;');
 }
 
-/** Registro minimo con atributos, compatible con Graphic sin acoplar al SDK. */
-export interface AttributeBag {
-  attributes?: Record<string, unknown> | null;
-}
-
 /**
- * Serializa una lista de elementos a CSV (RF-SEL-05). Une el conjunto de campos
- * de todos los elementos, escapa comillas y separa filas con CRLF.
+ * Nota: la exportacion a CSV vive en `csvExport.ts`, que ademas resuelve los
+ * campos configurados y anade las columnas de geometria (X/Y en puntos, X/Y
+ * inicial y final en lineas).
  */
-export function featuresToCsv(features: AttributeBag[]): string {
-  if (features.length === 0) return '';
-  const fields = Array.from(
-    features.reduce((set, f) => {
-      Object.keys(f.attributes ?? {}).forEach((k) => set.add(k));
-      return set;
-    }, new Set<string>()),
-  );
-  const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
-  const header = fields.map(escape).join(',');
-  const rows = features.map((f) =>
-    fields.map((k) => escape((f.attributes ?? {})[k])).join(','),
-  );
-  return [header, ...rows].join('\r\n');
-}

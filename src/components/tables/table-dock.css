@@ -34,6 +34,39 @@
   flex: none;
 }
 
+.table-dock-tabs {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.table-dock-tabs button {
+  appearance: none;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.6rem 0.9rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--calcite-color-text-2);
+  cursor: pointer;
+}
+
+.table-dock-tabs button:hover {
+  color: var(--calcite-color-text-1);
+  background: var(--calcite-color-foreground-2);
+}
+
+.table-dock-tabs button.is-active {
+  color: var(--calcite-color-brand);
+  border-bottom-color: var(--calcite-color-brand);
+  font-weight: 600;
+}
+
+.table-dock-tabs button:focus-visible {
+  outline: 2px solid var(--calcite-color-brand);
+  outline-offset: -2px;
+}
+
 .table-dock-body {
   flex: 1;
   min-height: 0;
@@ -138,3 +171,5 @@
     max-height: 60vh;
   }
 }
+
+.layer-table-hint { margin: 0 0 0.4rem; }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { escapeLike, escapeHtml, buildWhere, buildValueWhere, featuresToCsv } from './queryUtils';
+import { escapeLike, escapeHtml, buildWhere, buildValueWhere } from './queryUtils';
 
 describe('escapeLike', () => {
   it('duplica comillas simples para evitar inyeccion', () => {
@@ -60,36 +60,5 @@ describe('buildValueWhere', () => {
 
   it('escapa comillas dentro de IN', () => {
     expect(buildValueWhere('N', ["a'b", 'c'])).toBe("N IN ('a''b','c')");
-  });
-});
-
-describe('featuresToCsv', () => {
-  it('lista vacia devuelve cadena vacia', () => {
-    expect(featuresToCsv([])).toBe('');
-  });
-
-  it('serializa encabezado y filas con CRLF', () => {
-    const csv = featuresToCsv([
-      { attributes: { TRAFO: 'T1', ALIMENTADORID: 'A1' } },
-      { attributes: { TRAFO: 'T2', ALIMENTADORID: 'A2' } },
-    ]);
-    expect(csv).toBe(
-      '"TRAFO","ALIMENTADORID"\r\n"T1","A1"\r\n"T2","A2"',
-    );
-  });
-
-  it('une campos de todos los elementos y escapa comillas dobles', () => {
-    const csv = featuresToCsv([
-      { attributes: { A: 'x"y' } },
-      { attributes: { B: 1 } },
-    ]);
-    const [header, row1, row2] = csv.split('\r\n');
-    expect(header).toBe('"A","B"');
-    expect(row1).toBe('"x""y",""');
-    expect(row2).toBe('"","1"');
-  });
-
-  it('maneja atributos nulos sin lanzar (encabezado y fila vacios)', () => {
-    expect(featuresToCsv([{ attributes: null }])).toBe('\r\n');
   });
 });

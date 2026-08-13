@@ -99,12 +99,32 @@ Selecciona elementos y los lista en una tabla.
 4. **Haga clic en una fila** (fuera de la casilla) → el mapa hace zoom a ese
    elemento y abre su información.
 5. **Encuadrar marcados** lleva el mapa a todos los elementos marcados a la vez.
-6. **CSV** exporta lo marcado (o toda la selección si no hay nada marcado);
+6. Use el **filtro** para reducir las filas mostradas cuando hay muchas.
+7. **CSV** exporta lo marcado (o toda la selección si no hay nada marcado);
    **Limpiar** borra la selección.
+
+> **Selecciones grandes:** los elementos se traen por lotes. Si el servicio tiene
+> más de los que se pueden mostrar, aparece un aviso indicando cuántos se están
+> viendo del total; acote la selección para verlos todos.
 
 > Las columnas de esta tabla se configuran en `app-config.json → selection`.
 > Por defecto se muestran `OBJECTID` y `GLOBALID`; con `fieldsByLayer` puede
 > añadir campos concretos para ciertas capas sin cambiar el resto.
+
+> La selección sigue activa aunque cierre el panel o la tabla. Para volver al
+> modo de identificación, pulse **Terminar**.
+
+#### Qué se exporta al CSV
+La exportación se configura aparte, en `app-config.json → export`, porque en el
+archivo suele hacer falta más información que en pantalla:
+
+- Se guarda el **valor almacenado**, no la descripción del dominio (en pantalla lee
+  «Poste de hormigón», en el archivo sale el código, que es lo que puede cruzar con
+  la base de datos).
+- Se añaden columnas de **geometría**: `X` e `Y` en puntos, y
+  `X_INICIAL`, `Y_INICIAL`, `X_FINAL`, `Y_FINAL` en líneas.
+- `fields` vacío exporta todos los atributos; con `fieldsByLayer` puede definir
+  campos distintos por capa.
 
 > Consulta las capas **encendidas** en ese momento, tanto si están publicadas como
 > FeatureLayer como si vienen de un MapImageLayer. Si no obtiene resultados,
@@ -112,16 +132,21 @@ Selecciona elementos y los lista en una tabla.
 > dibujan y consultan a partir de cierta escala).
 
 ### 3.6 ▦ Tabla de atributos
-Muestra los datos de una capa en forma de tabla, sin necesidad de seleccionar antes.
+El botón de tabla abre el **panel acoplado bajo el mapa**, con dos pestañas:
+**Selección** (lo que haya seleccionado) y **Tabla de atributos** (una capa entera).
+
+En la pestaña **Tabla de atributos**:
 1. Elija la **capa** en la lista.
 2. Elija el alcance:
    - **Solo lo visible:** únicamente los elementos dentro del área que está viendo
      en el mapa (se actualiza al navegar).
    - **Ver todo:** todos los elementos de la capa.
-3. Ordene y explore con los controles de la tabla.
+3. Opcionalmente escriba un **filtro** como expresión SQL, por ejemplo
+   `ALIMENTADORID = 'A1'`, y pulse Intro.
+4. Ordene y explore con los controles de la tabla.
 
-> Funciona también cuando el servicio se publica como MapImageLayer: las subcapas
-> se consultan automáticamente.
+> Las filas se cargan **por páginas**, no todas de golpe, para que las capas con
+> muchos elementos no bloqueen el navegador.
 
 ### 3.7 ✎ Dibujo
 Dibuje anotaciones sobre el mapa.
@@ -151,13 +176,23 @@ Genera un mapa imprimible con simbología y leyenda.
 
 ---
 
-## 4. Popups (ventanas de información)
+## 4. Popups e identificación
 
-Al hacer clic sobre un elemento (o al ubicarlo desde una búsqueda) se abre su **popup**:
+Al hacer clic sobre el mapa (sin ninguna herramienta activa) se **identifican todos
+los elementos que hay bajo ese punto**, de todas las capas encendidas, y se abren en
+**una sola ventana**:
+
+- Si hay varios elementos, use las flechas de la ventana para recorrerlos. Cada uno
+  indica **de qué capa procede**, así sabe si está viendo el poste, el
+  transformador o la luminaria de ese mismo punto.
 - Muestra los **atributos** configurados (con sus alias).
 - Puede mostrar **registros relacionados** (p. ej. desde un transformador, sus
   consumidores asociados).
 - Si está habilitado, incluye un botón **Street View** (ver abajo).
+
+> Mientras esté activa la herramienta de **Selección** o la de **Street View**, el
+> clic hace esa otra acción en lugar de identificar. Pulse **Terminar** en el panel
+> de selección para volver al modo de identificación.
 
 ---
 
@@ -172,8 +207,13 @@ El comportamiento depende de si hay clave de Google configurada:
 
 | Situación | Qué ocurre |
 |---|---|
-| **Sin clave de Google** (caso habitual) | Street View se abre en una **ventana emergente independiente** del navegador. No requiere clave ni facturación. |
+| **Sin clave de Google** (caso habitual) | Street View se abre en una **ventana emergente independiente** del navegador. No requiere clave ni facturación. Al elegir otro punto se **reutiliza la misma ventana**, no se abre otra. |
 | **Con clave** (`VITE_GOOGLE_MAPS_KEY`) | El panorama se **incrusta** en un recuadro flotante dentro de la app, redimensionable y cerrable. |
+
+Mientras Street View está abierto, el mapa muestra un **muñeco** en la ubicación que
+se está viendo, de modo que siempre sepa a qué punto corresponde la vista de calle.
+El muñeco se mueve al elegir otro punto y **desaparece** al cerrar Street View (con
+el botón **Cerrar Street View** del panel o cerrando la ventana de Google).
 
 > Si el navegador bloquea la ventana emergente, la aplicación muestra un enlace para
 > abrirla manualmente. Permita las ventanas emergentes para este sitio y no volverá a

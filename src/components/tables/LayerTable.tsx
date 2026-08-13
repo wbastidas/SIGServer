@@ -157,6 +157,10 @@ export function LayerTable() {
         </CalciteLabel>
       </div>
 
+      <p className="muted layer-table-hint">
+        {scope === 'visible' ? t('table.hintVisible') : t('table.hintAll')}
+      </p>
+
       <div ref={hostRef} className="layer-table-host" />
     </>
   );

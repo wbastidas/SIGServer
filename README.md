@@ -86,7 +86,7 @@ sin reconstruir la app (RNF-CFG-01/03).
 
 | Archivo | Contenido |
 |---|---|
-| `app-config.json` | Mapa base, servicio operacional, SR (WKID), filtros, impresión, Street View, auth. |
+| `app-config.json` | Mapa base, servicio operacional, SR (WKID), filtros, **columnas de la tabla de selección** (`selection`), **qué se exporta al CSV** (`export`), impresión, Street View, auth. |
 | `searches.json` | Búsquedas configurables (directas y relacionadas). |
 | `popups.json` | Popups por capa: campos, alias, relacionados, Street View. |
 
@@ -191,8 +191,8 @@ public/config/ app-config.json · searches.json · popups.json
 | RF-DRW-01..04 | `DrawTools` (`arcgis-sketch`, GraphicsLayer dedicado) |
 | RF-MSR-01..03 | `MeasureTools` (`arcgis-*-measurement-2d`) |
 | RF-GOTO-01..04 | `GoToXYPanel`, `projectionService`, `CoordinateConversion` (`arcgis-coordinate-conversion`) |
-| RF-SEL-01..05 | `SelectionTable`, `selectionService`, `highlightService` (CSV incluido) |
-| RF-POP-01..04 | `popupTemplateFactory`, `popups.json` (relacionados + acción Street View) |
+| RF-SEL-01..05 | `SelectionTools` + `MapInteractions` (modos), `selectionService` (por lotes), `TableDock`/`SelectionResults` (tabla acoplada, casillas sincronizadas con el mapa), `csvExport` (valores crudos + XY) |
+| RF-POP-01..04 | `popupTemplateFactory`, `popups.json`, `identifyService` (todos los elementos bajo el clic en un popup) |
 | RF-GSV-01..04 | `StreetViewPanel`, `googleStreetView`, `useStreetViewStore` |
 | RF-PRT-01..04 | `PrintPanel` (`arcgis-print`) |
 | RF-ARQ-01 | Store central + paneles desacoplados + `ErrorBoundary` por módulo |
