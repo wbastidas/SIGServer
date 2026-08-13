@@ -9,11 +9,68 @@ body,
   font-family: var(--calcite-sans-family, 'Avenir Next', 'Segoe UI', sans-serif);
 }
 
+/*
+ * Altura real del viewport. En moviles `100vh` incluye la barra del navegador,
+ * de modo que la interfaz sobresale por debajo y "se agranda" mas que la
+ * pantalla; `100dvh` se ajusta a lo que realmente se ve.
+ */
+html,
+body,
+#root {
+  height: 100dvh;
+  max-height: 100dvh;
+}
+
 * {
   box-sizing: border-box;
 }
 
-/* El popup del SDK, la leyenda y demas heredan el tema Calcite. */
+/* Nada debe desbordar la pantalla: el contenido ancho se desplaza dentro de su
+   propio contenedor, no estirando la aplicacion. */
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
 :root {
   --sig-accent: #ff8000;
+}
+
+/* ---------------------------------------------------------------------------
+ * Popup del SDK: acoplado al lateral y acotado a la pantalla.
+ * Sin estos limites, un elemento con muchos atributos estira el popup hasta
+ * ocupar toda la ventana y deja de distinguirse donde esta cada cosa.
+ * ------------------------------------------------------------------------ */
+.esri-view .esri-popup--is-docked .esri-popup__main-container,
+.esri-view .esri-popup__main-container {
+  max-width: min(400px, 92vw);
+  max-height: min(62vh, 560px);
+}
+
+.esri-view .esri-popup__content {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Las tablas de atributos del popup no deben ensanchar la ficha. */
+.esri-view .esri-popup__content table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.esri-view .esri-popup__content td,
+.esri-view .esri-popup__content th {
+  overflow-wrap: anywhere;
+}
+
+/* En pantallas estrechas el popup acoplado ocupa el ancho disponible, pero
+   nunca mas que la pantalla. */
+@media (max-width: 720px) {
+  .esri-view .esri-popup--is-docked .esri-popup__main-container,
+  .esri-view .esri-popup__main-container {
+    max-width: calc(100vw - 1.5rem);
+    max-height: 55dvh;
+  }
 }

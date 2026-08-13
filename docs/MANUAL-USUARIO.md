@@ -80,11 +80,33 @@ Controla qué se ve.
 - **Opacidad:** transparencia del mapa base.
 
 ### 3.4 ▽ Filtros
-Muestra solo los elementos que cumplen un valor (p. ej. por `ALIMENTADORID`).
-1. Elija la **capa/campo**.
-2. Marque uno o varios **valores** (según permita, selección individual o múltiple).
-3. Pulse **Aplicar** → el mapa muestra solo esos elementos.
-4. **Limpiar** vuelve a mostrar todo.
+Muestra solo los elementos que cumplen un valor, **en todas las capas a la vez**.
+
+El filtro se define por **campo**, no por capa: el alimentador es `ALIMENTADORID`
+en la mayoría de capas y `ALIMENTADOR` sólo en postes, y un mismo filtro afecta a
+todas las capas que publiquen cualquiera de esos campos.
+
+1. Elija el **filtro** (p. ej. «Alimentador»). Debajo verá **a cuántas capas afecta**.
+2. Use el **buscador** para localizar el valor en listas largas.
+3. Marque uno o varios **valores** (según permita, selección individual o múltiple).
+4. Pulse **Aplicar** → el mapa muestra solo esos elementos.
+5. **Apagar filtro** vuelve a mostrar todo.
+
+> **Siempre se ve si hay un filtro puesto:** aparece un aviso en la parte superior
+> del mapa con el filtro y sus valores, y una **✕ para apagarlo** sin abrir el panel.
+> Así nunca se queda un filtro activo sin darse cuenta.
+
+Se configura en `app-config.json → filters`:
+
+```json
+{
+  "id": "alimentador",
+  "label": "Alimentador",
+  "fields": ["ALIMENTADORID", "ALIMENTADOR"],
+  "allowMultiple": true
+}
+```
+Con `onlyLayers` puede restringirlo a ciertas capas si no quiere que sea general.
 
 ### 3.5 ▤ Selección / Tabla
 Selecciona elementos y los lista en una tabla.

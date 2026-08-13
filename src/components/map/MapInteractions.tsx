@@ -17,6 +17,7 @@ import { useTableDockStore } from '@/store/useTableDockStore';
 import { useStreetViewStore } from '@/store/useStreetViewStore';
 import { selectByClick, selectByGeometry } from '@/services/selectionService';
 import { identifyAt } from '@/services/identifyService';
+import { dockPopupRight } from '@/services/highlightService';
 import { toLatLong } from '@/services/projectionService';
 
 type RemovableHandle = { remove: () => void };
@@ -57,6 +58,11 @@ export function MapInteractions() {
             view.closePopup();
             return;
           }
+          // Acoplado al lateral derecho: la ficha aparece siempre en el mismo
+          // sitio, no tapa el punto pulsado y no se reubica abajo en pantallas
+          // pequenas. Se fija tambien aqui (no solo al crear la vista) para que
+          // el comportamiento sea el mismo en cada apertura.
+          dockPopupRight(view);
           view.openPopup({
             location: event.mapPoint,
             features: result.features,

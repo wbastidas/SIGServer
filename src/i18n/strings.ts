@@ -70,6 +70,9 @@ export type LocaleKey =
   | 'filter.searchPlaceholder'
   | 'filter.noMatches'
   | 'filter.tooMany'
+  | 'filter.scope'
+  | 'filter.turnOff'
+  | 'filter.noLayersWithField'
   // Seleccion / tabla acoplada
   | 'selection.hintClick'
   | 'selection.hintDraw'
@@ -217,6 +220,9 @@ const esEC: Dictionary = {
   'filter.searchPlaceholder': 'Escriba para filtrar la lista...',
   'filter.noMatches': 'Ningun valor coincide con la busqueda.',
   'filter.tooMany': 'Mostrando los primeros 300 de {n}. Afine la busqueda.',
+  'filter.scope': 'Afecta a {n} capa(s)',
+  'filter.turnOff': 'Apagar filtro',
+  'filter.noLayersWithField': 'Ninguna capa del mapa publica los campos {fields}.',
 
   'selection.hintClick': 'Haga clic sobre un elemento del mapa para seleccionarlo.',
   'selection.hintDraw': 'Dibuje un area sobre el mapa para seleccionar los elementos que contiene.',
@@ -369,6 +375,9 @@ const enUS: Dictionary = {
   'filter.searchPlaceholder': 'Type to filter the list...',
   'filter.noMatches': 'No value matches the search.',
   'filter.tooMany': 'Showing the first 300 of {n}. Refine the search.',
+  'filter.scope': 'Affects {n} layer(s)',
+  'filter.turnOff': 'Turn filter off',
+  'filter.noLayersWithField': 'No layer in the map publishes the fields {fields}.',
 
   'selection.hintClick': 'Click a feature on the map to select it.',
   'selection.hintDraw': 'Draw an area on the map to select the features inside.',

@@ -18,6 +18,7 @@ import { MapControls } from '@/components/map/MapControls';
 import { CoordinateConversion } from '@/components/map/CoordinateConversion';
 import { MapInteractions } from '@/components/map/MapInteractions';
 import { StreetViewMarker } from '@/components/map/StreetViewMarker';
+import { FilterBanner } from '@/components/map/FilterBanner';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { SearchPanel } from '@/components/panels/SearchPanel';
 import { LayerListPanel } from '@/components/panels/LayerListPanel';
@@ -37,6 +38,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useUiStore } from '@/store/useUiStore';
 import { useI18n } from '@/i18n/useI18n';
+import { useIsNarrow } from '@/components/common/useIsNarrow';
 import type { LocaleKey } from '@/i18n/strings';
 import './shell.css';
 
@@ -71,6 +73,7 @@ export function AppShell() {
   const dockOpen = useTableDockStore((s) => s.open);
   const toggleDock = useTableDockStore((s) => s.toggle);
   const { t } = useI18n();
+  const isNarrow = useIsNarrow();
   const [collapsed] = useState(false);
 
   const activePanelKey = TOOLS.find((tool) => tool.id === activeTool)?.panelKey;
@@ -108,7 +111,15 @@ export function AppShell() {
         </div>
       </CalciteNavigation>
 
-      <CalciteShellPanel slot="panel-start" collapsed={collapsed} className="tool-shell-panel">
+      {/* En movil el panel se SUPERPONE al mapa en lugar de empujarlo: si lo
+          empuja, el mapa queda fuera de la pantalla y se pierde la referencia
+          de donde esta cada cosa. */}
+      <CalciteShellPanel
+        slot="panel-start"
+        collapsed={collapsed}
+        className="tool-shell-panel"
+        displayMode={isNarrow ? 'overlay' : 'dock'}
+      >
         <CalciteActionBar slot="action-bar">
           {TOOLS.map((tool) => (
             <CalciteAction
@@ -156,6 +167,8 @@ export function AppShell() {
             Al no depender de los paneles, seguir funcionando aunque se cierren. */}
         <MapInteractions />
         <StreetViewMarker />
+        {/* Aviso del filtro activo: visible aunque el panel este cerrado. */}
+        <FilterBanner />
         <MapControls />
         <CoordinateConversion />
         <ErrorBoundary name={t('panel.table')}>

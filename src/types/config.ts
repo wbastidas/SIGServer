@@ -70,11 +70,32 @@ export interface GotoConfig {
   markerColor?: [number, number, number];
 }
 
+/**
+ * Filtro por atributo (RF-FIL).
+ *
+ * Se define por CAMPO, no por capa: el filtro se aplica a todas las capas que
+ * publiquen alguno de los campos indicados. Es lo que se necesita en una red
+ * electrica, donde el alimentador aparece como `ALIMENTADORID` en casi todas
+ * las capas y como `ALIMENTADOR` solo en postes: un unico filtro debe afectar a
+ * todas ellas a la vez.
+ */
 export interface FilterConfig {
-  layerId: number;
-  field: string;
+  /** Identificador estable del filtro. */
+  id?: string;
+  /** Campos equivalentes que representan el mismo concepto. */
+  fields?: string[];
   label?: string;
   allowMultiple: boolean;
+  /**
+   * Limitar el filtro a estas capas (por id de subcapa o nombre). Si se omite,
+   * se aplica a TODAS las capas que tengan alguno de los campos.
+   */
+  onlyLayers?: (number | string)[];
+
+  /** @deprecated Compatibilidad: filtro de una sola capa y un solo campo. */
+  layerId?: number;
+  /** @deprecated Use `fields`. */
+  field?: string;
 }
 
 export interface MeasureConfig {

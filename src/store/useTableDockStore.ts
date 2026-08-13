@@ -25,5 +25,11 @@ export const useTableDockStore = create<TableDockState>((set, get) => ({
   openTab: (tab) => set({ open: true, tab }),
   toggle: () => set({ open: !get().open }),
   close: () => set({ open: false }),
-  setHeight: (height) => set({ height: Math.max(160, Math.min(height, 700)) }),
+  // El alto se acota tambien al 70% de la ventana: asi el panel nunca crece mas
+  // que la pantalla ni deja el mapa sin espacio, en cualquier dispositivo.
+  setHeight: (height) => {
+    const viewport = typeof window !== 'undefined' ? window.innerHeight : 900;
+    const max = Math.max(180, Math.floor(viewport * 0.7));
+    set({ height: Math.max(160, Math.min(height, max)) });
+  },
 }));

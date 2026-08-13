@@ -1,6 +1,11 @@
 .app-shell {
-  height: 100vh;
+  /* dvh: en movil se ajusta al alto realmente visible (100vh se sale por debajo
+     al contar la barra del navegador). */
+  height: 100dvh;
+  max-height: 100dvh;
   width: 100vw;
+  max-width: 100vw;
+  overflow: hidden;
 }
 
 .nav-user {
@@ -44,6 +49,9 @@
   position: relative;
   height: 100%;
   width: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .map-controls {
@@ -140,7 +148,9 @@
 
 @media (max-width: 640px) {
   .tool-shell-panel {
-    --calcite-shell-panel-width: 100vw;
+    /* Deja ver una franja del mapa: ayuda a situarse y a cerrar el panel. */
+    --calcite-shell-panel-width: 86vw;
+    --calcite-shell-panel-max-width: 86vw;
   }
   .nav-username {
     display: none;

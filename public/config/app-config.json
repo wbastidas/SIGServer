@@ -41,7 +41,12 @@
     "markerColor": [255, 128, 0]
   },
   "filters": [
-    { "layerId": 9, "field": "ALIMENTADORID", "label": "Alimentador", "allowMultiple": true }
+    {
+      "id": "alimentador",
+      "label": "Alimentador",
+      "fields": ["ALIMENTADORID", "ALIMENTADOR"],
+      "allowMultiple": true
+    }
   ],
   "measure": {
     "linearUnit": "meters",

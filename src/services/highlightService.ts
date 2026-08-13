@@ -40,6 +40,24 @@ function symbolFor(geometry: Geometry) {
   }
 }
 
+/**
+ * Fija el popup acoplado al lateral derecho.
+ *
+ * Se aplica en cada apertura, no solo al crear la vista: asi la ficha del
+ * elemento sale siempre en el mismo sitio (y no abajo) en cualquier tamano de
+ * pantalla, y no puede quedarse flotando sobre el punto pulsado.
+ */
+export function dockPopupRight(view: MapView): void {
+  const popup = view.popup;
+  if (!popup) return;
+  popup.dockOptions = {
+    buttonEnabled: false,
+    breakpoint: false,
+    position: 'top-right',
+  } as never;
+  popup.dockEnabled = true;
+}
+
 /** Limpia los resaltados temporales de la capa. */
 export function clearHighlights(graphicsLayer: GraphicsLayer): void {
   graphicsLayer.removeAll();
@@ -131,6 +149,7 @@ export async function highlightAndZoom(
   await view.goTo(target).catch(() => undefined);
 
   if (options.openPopup && options.attributes) {
+    dockPopupRight(view);
     view.openPopup({
       location: geometry.type === 'point' ? (geometry as any) : geometry.extent?.center,
       title: options.popupTitle ?? 'Elemento',

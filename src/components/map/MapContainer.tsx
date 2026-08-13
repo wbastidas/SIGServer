@@ -64,8 +64,12 @@ export function MapContainer() {
       ...(applySR ? { spatialReference } : {}),
       constraints: viewOptions.constraints,
       popup: {
+        // Acoplado SIEMPRE al lateral derecho, nunca flotando sobre el punto ni
+        // anclado abajo: con `breakpoint: false` no se reubica solo en pantallas
+        // pequenas, de modo que la informacion aparece en el mismo sitio en
+        // escritorio, tablet y movil.
         dockEnabled: true,
-        dockOptions: { buttonEnabled: true, breakpoint: false, position: 'top-right' },
+        dockOptions: { buttonEnabled: false, breakpoint: false, position: 'top-right' },
       },
       // `scale` (a diferencia de `zoom`) no depende de que existan LODs.
       scale: viewOptions.scale ?? zoomToScale(appCfg.map.initialZoom),
