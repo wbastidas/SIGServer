@@ -6,6 +6,7 @@ import Graphic from '@arcgis/core/Graphic';
 import type MapView from '@arcgis/core/views/MapView';
 import type GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import type Geometry from '@arcgis/core/geometry/Geometry';
+import { escapeHtml } from './queryUtils';
 
 const HIGHLIGHT_POINT = {
   type: 'simple-marker' as const,
@@ -39,9 +40,85 @@ function symbolFor(geometry: Geometry) {
   }
 }
 
+/**
+ * Fija el popup acoplado al lateral derecho.
+ *
+ * Se aplica en cada apertura, no solo al crear la vista: asi la ficha del
+ * elemento sale siempre en el mismo sitio (y no abajo) en cualquier tamano de
+ * pantalla, y no puede quedarse flotando sobre el punto pulsado.
+ */
+export function dockPopupRight(view: MapView): void {
+  const popup = view.popup;
+  if (!popup) return;
+  popup.dockOptions = {
+    buttonEnabled: false,
+    breakpoint: false,
+    position: 'top-right',
+  } as never;
+  popup.dockEnabled = true;
+}
+
 /** Limpia los resaltados temporales de la capa. */
 export function clearHighlights(graphicsLayer: GraphicsLayer): void {
   graphicsLayer.removeAll();
+}
+
+/** Simbolos de "marcado como seleccionado" (mas llamativos que el resaltado simple). */
+const SELECTED_POINT = {
+  type: 'simple-marker' as const,
+  style: 'circle' as const,
+  color: [0, 200, 255, 0.35],
+  size: 18,
+  outline: { color: [0, 145, 234], width: 3 },
+};
+
+const SELECTED_LINE = {
+  type: 'simple-line' as const,
+  color: [0, 145, 234],
+  width: 5,
+};
+
+const SELECTED_FILL = {
+  type: 'simple-fill' as const,
+  color: [0, 200, 255, 0.25],
+  outline: { color: [0, 145, 234], width: 3 },
+};
+
+function selectedSymbolFor(geometry: Geometry) {
+  switch (geometry.type) {
+    case 'point':
+    case 'multipoint':
+      return SELECTED_POINT;
+    case 'polyline':
+      return SELECTED_LINE;
+    default:
+      return SELECTED_FILL;
+  }
+}
+
+/**
+ * Marca en el mapa el conjunto de elementos elegidos en la tabla
+ * (sincronizacion tabla -> mapa, RF-SEL-04). Sustituye las marcas anteriores.
+ */
+export function markSelectedOnMap(
+  graphicsLayer: GraphicsLayer,
+  geometries: (Geometry | null | undefined)[],
+): void {
+  clearHighlights(graphicsLayer);
+  for (const geometry of geometries) {
+    if (!geometry) continue;
+    graphicsLayer.add(new Graphic({ geometry, symbol: selectedSymbolFor(geometry) }));
+  }
+}
+
+/** Encuadra el mapa sobre un conjunto de elementos marcados. */
+export async function zoomToGeometries(
+  view: MapView,
+  geometries: (Geometry | null | undefined)[],
+): Promise<void> {
+  const valid = geometries.filter((g): g is Geometry => !!g);
+  if (valid.length === 0) return;
+  await view.goTo(valid).catch(() => undefined);
 }
 
 /**
@@ -72,11 +149,13 @@ export async function highlightAndZoom(
   await view.goTo(target).catch(() => undefined);
 
   if (options.openPopup && options.attributes) {
+    dockPopupRight(view);
     view.openPopup({
       location: geometry.type === 'point' ? (geometry as any) : geometry.extent?.center,
       title: options.popupTitle ?? 'Elemento',
+      // Los valores vienen del servicio: se escapan para no inyectar HTML.
       content: Object.entries(options.attributes)
-        .map(([k, v]) => `<b>${k}:</b> ${v}`)
+        .map(([k, v]) => `<b>${escapeHtml(k)}:</b> ${escapeHtml(v)}`)
         .join('<br/>'),
     });
   }

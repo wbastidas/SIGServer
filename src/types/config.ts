@@ -34,6 +34,24 @@ export interface MapConfig {
   featureSublayerIds?: number[];
   /** Sistema de referencia del mapa (RF-MAP-03). */
   spatialReferenceWkid: number;
+  /**
+   * Forzar el SR indicado aunque el mapa base sea una cache teselada.
+   *
+   * Una cache solo puede dibujarse en el SR de su propio esquema de teselas. Si
+   * se fuerza otro SR distinto, el basemap no carga, la vista nunca queda
+   * "ready" y el mapa deja de responder al zoom. Por eso el valor por defecto
+   * es `false`: con basemap teselado manda el SR de la cache. Ponga `true` solo
+   * si sabe que la cache esta publicada en `spatialReferenceWkid`.
+   */
+  forceSpatialReference?: boolean;
+  /**
+   * URL de un GeometryServer del ArcGIS Server para reproyecciones que requieran
+   * transformacion de datum del lado servidor. Si se omite, el SDK usaria por
+   * defecto el servicio de arcgisonline (AGOL); definir esta URL evita esa
+   * dependencia externa (§2.1, §10.7). Ej.:
+   * https://…/arcgis/rest/services/Utilities/Geometry/GeometryServer
+   */
+  geometryServiceUrl?: string;
   /** Extent inicial en el SR del mapa. Si viene en ceros se ignora. */
   initialExtent?: Extent;
   /** Centro inicial en Lat/Long (fallback si no hay initialExtent). */
@@ -52,11 +70,32 @@ export interface GotoConfig {
   markerColor?: [number, number, number];
 }
 
+/**
+ * Filtro por atributo (RF-FIL).
+ *
+ * Se define por CAMPO, no por capa: el filtro se aplica a todas las capas que
+ * publiquen alguno de los campos indicados. Es lo que se necesita en una red
+ * electrica, donde el alimentador aparece como `ALIMENTADORID` en casi todas
+ * las capas y como `ALIMENTADOR` solo en postes: un unico filtro debe afectar a
+ * todas ellas a la vez.
+ */
 export interface FilterConfig {
-  layerId: number;
-  field: string;
+  /** Identificador estable del filtro. */
+  id?: string;
+  /** Campos equivalentes que representan el mismo concepto. */
+  fields?: string[];
   label?: string;
   allowMultiple: boolean;
+  /**
+   * Limitar el filtro a estas capas (por id de subcapa o nombre). Si se omite,
+   * se aplica a TODAS las capas que tengan alguno de los campos.
+   */
+  onlyLayers?: (number | string)[];
+
+  /** @deprecated Compatibilidad: filtro de una sola capa y un solo campo. */
+  layerId?: number;
+  /** @deprecated Use `fields`. */
+  field?: string;
 }
 
 export interface MeasureConfig {
@@ -82,10 +121,58 @@ export interface AuthConfig {
   apiBaseUrl?: string;
 }
 
+/** Campo mostrado en la tabla de seleccion (RF-SEL-02). */
+export interface SelectionFieldConfig {
+  name: string;
+  label?: string;
+}
+
+export interface SelectionConfig {
+  /** Columnas por defecto para todas las capas. */
+  fields: SelectionFieldConfig[];
+  /** Mostrar de que capa proviene cada elemento seleccionado. */
+  showLayerName?: boolean;
+  /**
+   * Columnas especificas por capa, para mostrar mas campos en ciertos
+   * elementos sin cambiar el resto. La clave puede ser el nombre de la capa
+   * (como aparece en el servicio) o su id de subcapa. Ej.:
+   *   "fieldsByLayer": {
+   *     "Transformadores": [
+   *       { "name": "OBJECTID" },
+   *       { "name": "TRAFO", "label": "Codigo TRAFO" }
+   *     ],
+   *     "9": [ { "name": "OBJECTID" } ]
+   *   }
+   */
+  fieldsByLayer?: Record<string, SelectionFieldConfig[]>;
+}
+
+/**
+ * Que se exporta al CSV (RF-SEL-05). Independiente de lo que se MUESTRA en la
+ * tabla: en pantalla interesan pocas columnas, en el archivo suelen hacer falta
+ * mas. Los valores se exportan tal y como estan almacenados (sin traducir
+ * dominios) para poder cruzarlos con la base de datos.
+ */
+export interface ExportConfig {
+  /** Campos por defecto. Vacio u omitido = todos los atributos disponibles. */
+  fields?: SelectionFieldConfig[];
+  /** Campos especificos por capa (misma clave que en selection.fieldsByLayer). */
+  fieldsByLayer?: Record<string, SelectionFieldConfig[]>;
+  /**
+   * Anadir columnas de geometria: X/Y en puntos y X/Y inicial y final en
+   * lineas. Activado por defecto.
+   */
+  includeGeometry?: boolean;
+  /** Anadir una columna con el nombre de la capa de origen. */
+  includeLayerColumn?: boolean;
+}
+
 export interface AppConfig {
   app: AppMeta;
   map: MapConfig;
   goto: GotoConfig;
+  selection?: SelectionConfig;
+  export?: ExportConfig;
   filters: FilterConfig[];
   measure: MeasureConfig;
   print: PrintConfig;

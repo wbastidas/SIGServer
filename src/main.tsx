@@ -13,12 +13,17 @@ import { defineCustomElements as defineCalcite } from '@esri/calcite-components/
 
 // --- Componentes web del SDK de ArcGIS ---
 import { defineCustomElements as defineMapComponents } from '@arcgis/map-components/dist/loader';
+import { setAssetPath as setMapComponentsAssetPath } from '@arcgis/map-components';
 
 import { App } from './App';
 import './styles/index.css';
 
 // Assets/traducciones de Calcite servidos desde /assets (ver vite.config.ts).
 setCalciteAssetPath(`${import.meta.env.BASE_URL}assets`);
+
+// Assets/traducciones de los componentes web del SDK servidos localmente desde
+// /assets (evita depender de js.arcgis.com / CDN; despliegue autocontenido).
+setMapComponentsAssetPath(`${import.meta.env.BASE_URL}assets`);
 
 // Registro de custom elements.
 defineCalcite(window);

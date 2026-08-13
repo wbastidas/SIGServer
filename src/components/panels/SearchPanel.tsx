@@ -4,7 +4,7 @@
  * sugerencias opcionales (RF-SRC-07). Al seleccionar un resultado, el mapa hace
  * zoom/pan, resalta el elemento y abre su popup (RF-SRC-05).
  */
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalciteButton,
   CalciteInputText,
@@ -17,11 +17,13 @@ import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
 import { getSuggestions, runSearch, SearchResult } from '@/services/searchService';
 import { highlightAndZoom } from '@/services/highlightService';
+import { useI18n } from '@/i18n/useI18n';
 
 export function SearchPanel() {
   const searches = useConfigStore((s) => s.config?.searches ?? []);
   const view = useMapStore((s) => s.view);
   const graphicsLayer = useMapStore((s) => s.graphicsLayer);
+  const { t } = useI18n();
 
   const [selectedId, setSelectedId] = useState(searches[0]?.id ?? '');
   const [term, setTerm] = useState('');
@@ -37,11 +39,10 @@ export function SearchPanel() {
     [searches, selectedId],
   );
 
-  const suggestionsEnabled =
-    activeSearch &&
-    (activeSearch.type === 'layer'
-      ? activeSearch.suggestions
-      : activeSearch.suggestions);
+  const suggestionsEnabled = Boolean(activeSearch?.suggestions);
+
+  // Evita setState tras desmontar si el temporizador de sugerencias queda vivo.
+  useEffect(() => () => window.clearTimeout(suggestTimer.current), []);
 
   function onTermInput(value: string) {
     setTerm(value);
@@ -84,15 +85,15 @@ export function SearchPanel() {
   }
 
   if (searches.length === 0) {
-    return <p className="muted">No hay busquedas configuradas en searches.json.</p>;
+    return <p className="muted">{t('search.noConfig')}</p>;
   }
 
   return (
     <div className="panel-section">
       <CalciteLabel>
-        Tipo de busqueda
+        {t('search.type')}
         <CalciteSelect
-          label="Tipo de busqueda"
+          label={t('search.type')}
           value={selectedId}
           onCalciteSelectChange={(e: any) => {
             setSelectedId(e.target.value);
@@ -109,10 +110,10 @@ export function SearchPanel() {
       </CalciteLabel>
 
       <CalciteLabel>
-        Texto a buscar
+        {t('search.term')}
         <CalciteInputText
           value={term}
-          placeholder="Ingrese un valor..."
+          placeholder={t('search.termPlaceholder')}
           onCalciteInputTextInput={(e: any) => onTermInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
         />
@@ -150,7 +151,7 @@ export function SearchPanel() {
           disabled={!term.trim() || undefined}
           onClick={handleSearch}
         >
-          Buscar
+          {t('tool.search')}
         </CalciteButton>
         <CalciteButton
           appearance="outline"
@@ -162,7 +163,7 @@ export function SearchPanel() {
             graphicsLayer?.removeAll();
           }}
         >
-          Limpiar
+          {t('common.clear')}
         </CalciteButton>
       </div>
 
@@ -173,9 +174,7 @@ export function SearchPanel() {
       )}
 
       {searched && !error && (
-        <p className="muted">
-          {results.length} resultado(s). Haga clic para ubicar en el mapa.
-        </p>
+        <p className="muted">{t('search.results', { n: results.length })}</p>
       )}
 
       <ul className="result-list">
@@ -189,7 +188,7 @@ export function SearchPanel() {
             onKeyDown={(e) => e.key === 'Enter' && handleSelect(r)}
           >
             {r.label}
-            {!r.geometry && <span className="muted"> (sin geometria)</span>}
+            {!r.geometry && <span className="muted"> {t('search.noGeometry')}</span>}
           </li>
         ))}
       </ul>

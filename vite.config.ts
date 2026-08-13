@@ -26,6 +26,14 @@ export default defineConfig({
           src: 'node_modules/@esri/calcite-components/dist/calcite/assets/*',
           dest: 'assets',
         },
+        {
+          // Assets/traducciones de los componentes web del SDK (@arcgis/map-components)
+          // -> dist/assets/<componente>/... Se unifican en /assets (no colisionan con
+          // los de Calcite ni con esri/). Sin esto, los componentes cargan sus t9n
+          // desde js.arcgis.com (CDN), violando el requisito autocontenido/offline.
+          src: 'node_modules/@arcgis/map-components/dist/cdn/assets/*',
+          dest: 'assets',
+        },
       ],
     }),
   ],

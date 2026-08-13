@@ -7,18 +7,23 @@ import { useEffect, useRef, useState } from 'react';
 import { CalciteButton } from '@esri/calcite-components-react';
 import { useStreetViewStore } from '@/store/useStreetViewStore';
 import { useConfigStore } from '@/store/useConfigStore';
-import { loadGoogleMaps, getGoogleKey } from '@/services/googleStreetView';
+import { loadGoogleMaps, getGoogleKey, streetViewUrl } from '@/services/googleStreetView';
+import { useI18n } from '@/i18n/useI18n';
 import './streetview.css';
 
 export function StreetViewPanel() {
-  const { open, latitude, longitude, close } = useStreetViewStore();
+  const { open, latitude, longitude, close, popupBlocked, embedded } = useStreetViewStore();
   const enabled = useConfigStore((s) => s.config?.app.streetView.enabled);
+  const { t } = useI18n();
   const panoRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'ok' | 'no-coverage' | 'unavailable'>(
     'loading',
   );
 
   useEffect(() => {
+    // Sin clave el panorama no se incrusta: el panel solo aparece si la ventana
+    // emergente fue bloqueada, para ofrecer el enlace manual.
+    if (popupBlocked) return;
     if (!open || latitude == null || longitude == null) return;
     let cancelled = false;
     setStatus('loading');
@@ -56,34 +61,54 @@ export function StreetViewPanel() {
     return () => {
       cancelled = true;
     };
-  }, [open, latitude, longitude]);
+  }, [open, latitude, longitude, popupBlocked]);
 
-  if (!open || !enabled) return null;
+  // El panel solo se muestra si el panorama va incrustado (hay clave) o si la
+  // ventana emergente fue bloqueada; con ventana externa el mapa solo marca el
+  // muneco y no hace falta panel dentro de la app.
+  if (!enabled || !open || (!embedded && !popupBlocked)) return null;
 
   return (
     <div className="street-view-panel" role="dialog" aria-label="Google Street View">
       <div className="sv-header">
-        <span>Google Street View</span>
+        <span>{t('sv.title')}</span>
         <CalciteButton
           appearance="transparent"
           kind="neutral"
           scale="s"
           iconStart="x"
           onClick={close}
-          title="Cerrar"
+          title={t('sv.close')}
         />
       </div>
       <div className="sv-body">
-        <div ref={panoRef} className="sv-pano" style={{ display: status === 'ok' ? 'block' : 'none' }} />
-        {status === 'loading' && <div className="sv-message">Cargando panoramica...</div>}
-        {status === 'no-coverage' && (
-          <div className="sv-message">No hay cobertura de Street View en este punto.</div>
-        )}
-        {status === 'unavailable' && (
+        {popupBlocked ? (
+          // Sin clave de Google se abre una ventana emergente; si el navegador
+          // la bloquea, ofrecemos el enlace para abrirla manualmente.
           <div className="sv-message">
-            Street View no disponible: falta la clave de Google (VITE_GOOGLE_MAPS_KEY) o no
-            hay conexion a internet.
+            <p>{t('sv.popupBlocked')}</p>
+            {latitude != null && longitude != null && (
+              <a
+                className="sv-link"
+                href={streetViewUrl(latitude, longitude)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t('sv.openInGoogle')}
+              </a>
+            )}
           </div>
+        ) : (
+          <>
+            <div
+              ref={panoRef}
+              className="sv-pano"
+              style={{ display: status === 'ok' ? 'block' : 'none' }}
+            />
+            {status === 'loading' && <div className="sv-message">{t('sv.loading')}</div>}
+            {status === 'no-coverage' && <div className="sv-message">{t('sv.noCoverage')}</div>}
+            {status === 'unavailable' && <div className="sv-message">{t('sv.unavailable')}</div>}
+          </>
         )}
       </div>
     </div>

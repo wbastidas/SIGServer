@@ -26,6 +26,13 @@ desplegarse como sitio estático en **IIS**.
 > **CORS:** el ArcGIS Server debe permitir el origen del visor, o bien publicarse
 > el visor tras el mismo dominio / proxy (ver §5).
 
+## Documentación
+
+- [Manual visual navegable (HTML)](docs/manual.html) — instalación, configuración e interfaz en una sola página (ábralo en el navegador).
+- [Instalación y configuración en Windows](docs/INSTALACION-WINDOWS.md) — paso a paso (dev + IIS).
+- [Manual de usuario (interfaz gráfica)](docs/MANUAL-USUARIO.md) — cómo interactuar.
+- [Arquitectura y módulos](docs/ARQUITECTURA.md) — detalle técnico interno.
+
 ## 2. Puesta en marcha (desarrollo)
 
 ```bash
@@ -52,8 +59,24 @@ npm run build             # genera dist/
 3. Requisitos del servidor: módulo **URL Rewrite**; si usa el backend/proxy,
    también **Application Request Routing (ARR)** con proxy habilitado.
 
-Los assets del SDK de ArcGIS y de Calcite se **copian localmente** al `dist/`
-(no se usa CDN), para un despliegue 100% autocontenido y offline.
+Los assets del SDK de ArcGIS, de los componentes web (`@arcgis/map-components`) y de
+Calcite se **copian localmente** al `dist/` (no se usa CDN `js.arcgis.com`), para un
+despliegue 100% autocontenido y offline. Además, `map.geometryServiceUrl` apunta al
+GeometryServer del propio ArcGIS Server para que ninguna reproyeccion recurra al
+servicio de arcgisonline (AGOL) — verificado: sin peticiones a `js.arcgis.com` ni a
+`arcgisonline.com`.
+
+### 3.1 Scripts y calidad
+
+```bash
+npm run typecheck   # TypeScript sin emitir
+npm run lint        # ESLint
+npm test            # Pruebas unitarias (Vitest) de la logica pura
+npm run build       # Build de produccion
+```
+
+Hay integración continua en `.github/workflows/ci.yml` que ejecuta typecheck,
+lint, pruebas y build en cada push/PR a `main`.
 
 ## 4. Configuración externa (sin recompilar)
 
@@ -63,7 +86,7 @@ sin reconstruir la app (RNF-CFG-01/03).
 
 | Archivo | Contenido |
 |---|---|
-| `app-config.json` | Mapa base, servicio operacional, SR (WKID), filtros, impresión, Street View, auth. |
+| `app-config.json` | Mapa base, servicio operacional, SR (WKID), filtros, **columnas de la tabla de selección** (`selection`), **qué se exporta al CSV** (`export`), impresión, Street View, auth. |
 | `searches.json` | Búsquedas configurables (directas y relacionadas). |
 | `popups.json` | Popups por capa: campos, alias, relacionados, Street View. |
 
@@ -167,13 +190,17 @@ public/config/ app-config.json · searches.json · popups.json
 | RF-FIL-01..05 | `FilterPanel` (definitionExpression / featureEffect) |
 | RF-DRW-01..04 | `DrawTools` (`arcgis-sketch`, GraphicsLayer dedicado) |
 | RF-MSR-01..03 | `MeasureTools` (`arcgis-*-measurement-2d`) |
-| RF-GOTO-01..04 | `GoToXYPanel`, `projectionService` |
-| RF-SEL-01..05 | `SelectionTable`, `selectionService`, `highlightService` (CSV incluido) |
-| RF-POP-01..04 | `popupTemplateFactory`, `popups.json` (relacionados + acción Street View) |
+| RF-GOTO-01..04 | `GoToXYPanel`, `projectionService`, `CoordinateConversion` (`arcgis-coordinate-conversion`) |
+| RF-SEL-01..05 | `SelectionTools` + `MapInteractions` (modos), `selectionService` (por lotes), `TableDock`/`SelectionResults` (tabla acoplada, casillas sincronizadas con el mapa), `csvExport` (valores crudos + XY) |
+| RF-POP-01..04 | `popupTemplateFactory`, `popups.json`, `identifyService` (todos los elementos bajo el clic en un popup) |
 | RF-GSV-01..04 | `StreetViewPanel`, `googleStreetView`, `useStreetViewStore` |
 | RF-PRT-01..04 | `PrintPanel` (`arcgis-print`) |
-| RF-ARQ-01 | Store central + paneles desacoplados |
-| RNF-PERF / SEC / UX / CFG / IIS | Ver §8, §5, Calcite, `configLoader`, `web.config` |
+| RF-ARQ-01 | Store central + paneles desacoplados + `ErrorBoundary` por módulo |
+| §3.2 BasemapConfig | `BasemapConfig` (visibilidad/opacidad del mapa base) |
+| §2.1/§2.2 · §10.7 (sin AGOL/CDN) | Assets del SDK, map-components y Calcite locales; `map.geometryServiceUrl` on-prem |
+| RNF-UX-01 | Tema claro/oscuro con conmutador (`useUiStore`, botón en la barra de navegación) |
+| RNF-UX-04 | i18n preparado (`src/i18n/`, hook `useI18n`, diccionario es-EC) |
+| RNF-PERF / SEC / CFG / IIS | Ver §8, §5, Calcite, `configLoader`, `web.config` |
 
 ## 10. Fuera de alcance (versión inicial)
 

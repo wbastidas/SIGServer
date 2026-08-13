@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="es-EC">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Manual de instalacion (Windows/IIS), configuracion y uso del Visor de Redes Electricas.">
+<title>Manual · Visor de Redes Eléctricas</title>
+<style>html,body{margin:0;padding:0}</style>
+</head>
+<body>
+<style>
+  :root {
+    --bg: #eef2f6;
+    --surface: #ffffff;
+    --surface-2: #f3f6f9;
+    --ink: #102030;
+    --ink-2: #4a5f72;
+    --ink-3: #7b8da0;
+    --line: #d7e0e8;
+    --line-strong: #c2cfda;
+    --primary: #00629b;
+    --primary-deep: #004067;
+    --accent: #ff7a00;
+    --accent-soft: #fff1e3;
+    --good: #1c8a5c;
+    --good-soft: #e6f4ec;
+    --warn: #b9740a;
+    --warn-soft: #fbf0dd;
+    --shadow: 0 1px 2px rgba(16,32,48,.06), 0 8px 24px rgba(16,32,48,.06);
+    --radius: 12px;
+    --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, "Cascadia Code", "SFMono-Regular", "SF Mono", Menlo, Consolas, monospace;
+    --map-grid: rgba(0,98,155,.10);
+  }
+  :root[data-theme="light"] {
+    --bg: #eef2f6; --surface: #ffffff; --surface-2: #f3f6f9; --ink: #102030; --ink-2: #4a5f72;
+    --line: #d7e0e8; --primary: #00629b; --accent: #ff7a00; --map-grid: rgba(0,98,155,.10);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b131c; --surface: #121e2b; --surface-2: #172433;
+      --ink: #e8eff6; --ink-2: #a2b4c6; --ink-3: #6f8598; --line: #24384b;
+      --line-strong: #315068; --primary: #45a6e6; --primary-deep: #8ac7ee; --accent: #ff9233;
+      --accent-soft: #2a1c0d; --good: #4bc790; --good-soft: #10241a; --warn: #e0a441; --warn-soft: #2a2110;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+      --map-grid: rgba(69,166,230,.12);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b131c; --surface: #121e2b; --surface-2: #172433; --ink: #e8eff6; --ink-2: #a2b4c6;
+    --ink-3: #6f8598; --line: #24384b; --line-strong: #315068; --primary: #45a6e6; --primary-deep: #8ac7ee;
+    --accent: #ff9233; --accent-soft: #2a1c0d; --good: #4bc790; --good-soft: #10241a; --warn: #e0a441;
+    --warn-soft: #2a2110; --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --map-grid: rgba(69,166,230,.12);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .layout { display: grid; grid-template-columns: 264px minmax(0, 1fr); max-width: 1220px; margin: 0 auto; }
+
+  /* ---- Nav rail ---- */
+  .rail {
+    position: sticky; top: 0; align-self: start; height: 100vh;
+    padding: 26px 18px; border-right: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 18px; overflow-y: auto;
+  }
+  .brand { display: flex; align-items: center; gap: 11px; }
+  .brand .mark {
+    width: 38px; height: 38px; border-radius: 10px; flex: none;
+    background: linear-gradient(150deg, var(--primary), var(--primary-deep));
+    display: grid; place-items: center; box-shadow: var(--shadow);
+  }
+  .brand .mark svg { width: 21px; height: 21px; color: #fff; }
+  .brand h1 { font-size: 15px; margin: 0; line-height: 1.15; letter-spacing: -.01em; }
+  .brand span { display: block; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin-top: 2px; }
+
+  nav.toc { display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 11px; border-radius: 9px; text-decoration: none;
+    color: var(--ink-2); font-size: 13.5px; font-weight: 500;
+    border: 1px solid transparent; transition: background .15s, color .15s;
+  }
+  nav.toc a .n { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); width: 16px; }
+  nav.toc a:hover { background: var(--surface-2); color: var(--ink); }
+  nav.toc a.active { background: var(--surface); color: var(--primary); border-color: var(--line); box-shadow: var(--shadow); }
+  nav.toc a.active .n { color: var(--accent); }
+  .rail-foot { margin-top: auto; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: .04em; line-height: 1.7; }
+
+  /* ---- Content ---- */
+  main { padding: 0 clamp(20px, 4vw, 64px) 120px; min-width: 0; }
+  .hero { padding: 54px 0 30px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+  .hero h2 { font-size: clamp(30px, 5vw, 46px); line-height: 1.04; letter-spacing: -.025em; margin: 0 0 16px; text-wrap: balance; font-weight: 800; }
+  .hero p { font-size: 18px; color: var(--ink-2); margin: 0; max-width: 60ch; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  .chip { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .03em; padding: 5px 11px; border-radius: 100px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); }
+  .chip b { color: var(--primary); font-weight: 600; }
+
+  section { padding-top: 56px; scroll-margin-top: 20px; }
+  section > .s-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; }
+  section > .s-head .idx { font-family: var(--font-mono); font-size: 13px; color: var(--accent); padding-top: 4px; }
+  section h3 { font-size: 25px; letter-spacing: -.02em; margin: 0; font-weight: 750; text-wrap: balance; }
+  section h3 + .sub { color: var(--ink-2); font-size: 14px; margin: 3px 0 0; }
+  p.lead { color: var(--ink-2); max-width: 66ch; }
+
+  h4 { font-size: 15.5px; letter-spacing: -.01em; margin: 30px 0 12px; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+  .card .ico { width: 34px; height: 34px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin-bottom: 12px; }
+  .card .ico svg { width: 19px; height: 19px; }
+  .card h5 { margin: 0 0 5px; font-size: 15px; }
+  .card p { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+
+  /* tool cards */
+  .tools { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+  .tool { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 18px 16px; box-shadow: var(--shadow); }
+  .tool-head { display: flex; align-items: center; gap: 11px; margin-bottom: 10px; }
+  .tool-head .ico { width: 36px; height: 36px; border-radius: 9px; flex: none; display: grid; place-items: center; background: linear-gradient(150deg, var(--primary), var(--primary-deep)); color: #fff; }
+  .tool-head .ico svg { width: 19px; height: 19px; }
+  .tool-head h5 { margin: 0; font-size: 15.5px; }
+  .tool-head .rf { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: .04em; }
+  .tool ol { margin: 8px 0 0; padding-left: 18px; }
+  .tool ol li { font-size: 13.4px; color: var(--ink-2); margin: 4px 0; }
+  .tool ol li b { color: var(--ink); font-weight: 600; }
+
+  /* steps (install) */
+  .steps { display: flex; flex-direction: column; gap: 12px; margin: 8px 0; counter-reset: step; }
+  .step { display: grid; grid-template-columns: 34px 1fr; gap: 14px; align-items: start; }
+  .step .num { counter-increment: step; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); border: 1.5px solid var(--primary); color: var(--primary); font-family: var(--font-mono); font-size: 14px; font-weight: 600; }
+  .step .num::before { content: counter(step); }
+  .step .body { padding-top: 3px; }
+  .step .body b { font-weight: 650; }
+  .step .body p { margin: 3px 0 0; font-size: 13.6px; color: var(--ink-2); }
+
+  pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; margin: 12px 0; }
+  code { font-family: var(--font-mono); font-size: 12.8px; }
+  pre code { color: var(--ink); line-height: 1.65; }
+  .cmt { color: var(--ink-3); }
+  .tok { color: var(--primary); }
+  p code, li code, td code { background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-size: 12.5px; color: var(--primary-deep); }
+
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 13.4px; background: var(--surface); }
+  th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-3); background: var(--surface-2); position: sticky; top: 0; }
+  tbody tr:last-child td { border-bottom: none; }
+  td b { color: var(--ink); }
+
+  .note { display: grid; grid-template-columns: 30px 1fr; gap: 12px; padding: 14px 16px; border-radius: 10px; margin: 14px 0; font-size: 13.6px; }
+  .note .ni { width: 22px; height: 22px; }
+  .note.tip { background: var(--good-soft); border: 1px solid color-mix(in srgb, var(--good) 30%, transparent); }
+  .note.tip .ni { color: var(--good); }
+  .note.warn { background: var(--warn-soft); border: 1px solid color-mix(in srgb, var(--warn) 34%, transparent); }
+  .note.warn .ni { color: var(--warn); }
+  .note b { color: var(--ink); }
+
+  /* ---- Mock app window ---- */
+  .mock { border: 1px solid var(--line-strong); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--surface); margin: 8px 0 18px; }
+  .mock-bar { display: flex; align-items: center; gap: 12px; padding: 9px 14px; background: var(--surface-2); border-bottom: 1px solid var(--line); }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 10px; height: 10px; border-radius: 50%; display: block; }
+  .dots i:nth-child(1){ background:#e05c4b; } .dots i:nth-child(2){ background:#e6a92b; } .dots i:nth-child(3){ background:#3fae5a; }
+  .mock-bar .title { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); }
+  .mock-bar .cnav { margin-left: auto; display: flex; gap: 7px; align-items: center; }
+  .mock-bar .cnav .pill { font-size: 10.5px; font-family: var(--font-mono); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); color: var(--ink-2); }
+  .marker { width: 19px; height: 19px; border-radius: 50%; background: var(--accent); color: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 700; display: inline-grid; place-items: center; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 26%, transparent); flex: none; }
+
+  .mock-body { display: grid; grid-template-columns: 52px 1fr; height: 340px; }
+  .mock-tools { border-right: 1px solid var(--line); padding: 10px 0; display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--surface); }
+  .mock-tools .t { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; color: var(--ink-2); position: relative; }
+  .mock-tools .t.on { background: var(--accent-soft); color: var(--accent); }
+  .mock-tools .t svg { width: 18px; height: 18px; }
+  .mock-map { position: relative; overflow: hidden;
+    background:
+      linear-gradient(var(--map-grid) 1px, transparent 1px) 0 0 / 34px 34px,
+      linear-gradient(90deg, var(--map-grid) 1px, transparent 1px) 0 0 / 34px 34px,
+      radial-gradient(120% 120% at 70% 20%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 60%),
+      var(--surface-2);
+  }
+  .mock-map .line { position: absolute; height: 3px; border-radius: 3px; background: color-mix(in srgb, var(--primary) 55%, transparent); }
+  .mock-map .node { position: absolute; width: 11px; height: 11px; border-radius: 3px; background: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+  .mock-zoom { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .mock-zoom b, .mock-locate { width: 30px; height: 30px; border-radius: 7px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; color: var(--ink-2); font-family: var(--font-mono); box-shadow: var(--shadow); }
+  .mock-locate { position: absolute; top: 84px; right: 12px; }
+  .mock-locate svg { width: 16px; height: 16px; }
+  .mock-coord { position: absolute; left: 12px; bottom: 12px; font-family: var(--font-mono); font-size: 10.5px; padding: 4px 9px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); color: var(--ink-2); box-shadow: var(--shadow); }
+  .mock-sv { position: absolute; right: 14px; bottom: 14px; width: 132px; height: 92px; border-radius: 9px; border: 1px solid var(--line-strong); box-shadow: var(--shadow); overflow: hidden; background: linear-gradient(160deg, #35506b, #16283a); }
+  .mock-sv .svbar { height: 20px; background: var(--surface-2); border-bottom: 1px solid var(--line); display: flex; align-items: center; padding: 0 7px; font-size: 9px; font-family: var(--font-mono); color: var(--ink-3); }
+  .callout { position: absolute; z-index: 3; }
+
+  .legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px 20px; margin-top: 6px; }
+  .legend .li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; font-size: 13.4px; }
+  .legend .li .marker { width: 20px; height: 20px; }
+  .legend .li b { color: var(--ink); }
+  .legend .li span { color: var(--ink-2); }
+
+  footer { margin-top: 70px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--ink-3); font-family: var(--font-mono); letter-spacing: .03em; }
+
+  .mobile-top { display: none; }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .rail { display: none; }
+    .mobile-top { display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 20; padding: 12px 18px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+    .mobile-top .mark { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(150deg, var(--primary), var(--primary-deep)); display: grid; place-items: center; }
+    .mobile-top .mark svg { width: 17px; height: 17px; color: #fff; }
+    .mobile-top b { font-size: 14px; }
+    .mock-body { grid-template-columns: 46px 1fr; height: 300px; }
+    .hero { padding: 30px 0 24px; }
+  }
+</style>
+
+<div class="mobile-top">
+  <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+  <b>Manual · Visor de Redes Eléctricas</b>
+</div>
+
+<div class="layout">
+  <aside class="rail">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span>
+      <div>
+        <h1>Visor de Redes Eléctricas</h1>
+        <span>Manual · CNEL EP</span>
+      </div>
+    </div>
+    <nav class="toc" id="toc">
+      <a href="#intro"><span class="n">01</span> Introducción</a>
+      <a href="#instalacion"><span class="n">02</span> Instalación</a>
+      <a href="#configuracion"><span class="n">03</span> Configuración</a>
+      <a href="#interfaz"><span class="n">04</span> La interfaz</a>
+      <a href="#herramientas"><span class="n">05</span> Herramientas</a>
+      <a href="#popups"><span class="n">06</span> Identificar y Street View</a>
+      <a href="#problemas"><span class="n">07</span> Problemas frecuentes</a>
+    </nav>
+    <div class="rail-foot">
+      SRS v1.0 · Julio 2026<br>ArcGIS Server · React · IIS<br>Sin AGOL / Portal
+    </div>
+  </aside>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">Manual de instalación y uso</p>
+      <h2>Consulta y análisis de redes eléctricas sobre ArcGIS Server</h2>
+      <p>Una plataforma web modular que se instala sobre IIS, se configura con archivos JSON y consume únicamente los servicios de mapas de su propio ArcGIS Server — sin licencias adicionales.</p>
+      <div class="meta">
+        <span class="chip"><b>ArcGIS</b> Maps SDK · web components</span>
+        <span class="chip"><b>React</b> + TypeScript + Vite</span>
+        <span class="chip"><b>Calcite</b> Design System</span>
+        <span class="chip"><b>IIS</b> · sin AGOL / CDN</span>
+      </div>
+    </header>
+
+    <!-- 01 INTRO -->
+    <section id="intro">
+      <div class="s-head"><span class="idx">01</span><div><h3>¿Qué es y qué resuelve?</h3><p class="sub">Una idea general antes de instalar.</p></div></div>
+      <p class="lead">El visor permite <b>buscar, filtrar, medir, dibujar, seleccionar, imprimir</b> y consultar información geográfica de redes eléctricas directamente sobre la cartografía publicada por su ArcGIS Server. Toda la parametrización vive en archivos de texto (JSON), por lo que puede adaptarse sin reprogramar.</p>
+      <div class="cards" style="margin-top:20px">
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><h5>Solo ArcGIS Server</h5><p>No depende de ArcGIS Online ni de Portal. Los mapas salen de sus propios servicios.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></div><h5>Configurable por JSON</h5><p>URLs, capas, campos, búsquedas y popups se editan sin recompilar la aplicación.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 20h8M12 18v2"/></svg></div><h5>Despliegue en IIS</h5><p>Se publica como sitio estático. Assets locales: funciona sin internet salvo su servidor.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M11 18h2"/></svg></div><h5>Responsivo</h5><p>Escritorio, tablet y móvil, con modo claro y oscuro.</p></div>
+      </div>
+    </section>
+
+    <!-- 02 INSTALL -->
+    <section id="instalacion">
+      <div class="s-head"><span class="idx">02</span><div><h3>Instalación en Windows</h3><p class="sub">Del entorno de prueba a la publicación en IIS.</p></div></div>
+
+      <h4>A · Probar en su equipo (desarrollo)</h4>
+      <p class="lead">Requiere <b>Node.js LTS 18 o 20</b>. En la carpeta del proyecto:</p>
+      <pre><code><span class="tok">npm</span> install
+<span class="tok">npm</span> run dev     <span class="cmt">:: abre http://localhost:5173 — entre con admin / admin</span></code></pre>
+
+      <h4>B · Publicar en producción (IIS)</h4>
+      <div class="steps">
+        <div class="step"><div class="num"></div><div class="body"><b>Instale IIS y el módulo URL Rewrite</b><p>Active Internet Information Services (Contenido estático) y añada el módulo «URL Rewrite». Opcional: «ARR» si usará proxy al backend.</p></div></div>
+        <div class="step"><div class="num"></div><div class="body"><b>Compile la aplicación</b><p>Ejecute <code>npm run build</code>. Se genera la carpeta <code>dist\</code> con todo lo necesario (incluidos los assets del SDK, sin CDN).</p></div></div>
+        <div class="step"><div class="num"></div><div class="body"><b>Copie <code>dist\</code> al sitio</b><p>Por ejemplo a <code>C:\inetpub\wwwroot\sigserver</code>, asegurándose de incluir el archivo <code>web.config</code>.</p></div></div>
+        <div class="step"><div class="num"></div><div class="body"><b>Cree el sitio en IIS Manager</b><p>«Agregar sitio web» → apunte la ruta física a esa carpeta y use un enlace <b>HTTPS</b> con su certificado.</p></div></div>
+        <div class="step"><div class="num"></div><div class="body"><b>Verifique</b><p>Abra <code>https://su-servidor/</code>: debe aparecer el login. Ingrese <b>admin / admin</b> y confirme que carga el mapa.</p></div></div>
+      </div>
+
+      <div class="note tip"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c.5.5 1 1.5 1 3h6c0-1.5.5-2.5 1-3a7 7 0 0 0-4-12Z"/></svg><div>El <code>web.config</code> ya trae configurado el <b>fallback SPA</b>, los tipos MIME, la compresión y las cabeceras de seguridad. No necesita ajustarlo a mano.</div></div>
+      <div class="note warn"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg><div><b>CORS:</b> si el navegador bloquea las peticiones al ArcGIS Server, habilite el origen del visor en el servidor o publique ambos bajo el mismo dominio.</div></div>
+    </section>
+
+    <!-- 03 CONFIG -->
+    <section id="configuracion">
+      <div class="s-head"><span class="idx">03</span><div><h3>Configuración</h3><p class="sub">Todo lo que cambia entre despliegues está en <code>config\</code>.</p></div></div>
+      <p class="lead">Edite los archivos de <code>public\config\</code> (o <code>dist\config\</code> tras compilar). Los principales campos de <code>app-config.json</code>:</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Campo</th><th>Qué controla</th></tr></thead>
+          <tbody>
+            <tr><td><code>basemapUrl</code> / <code>basemapType</code></td><td>URL del mapa base y si es <b>tiled</b> (caché, rápido) o <b>dynamic</b>.</td></tr>
+            <tr><td><code>operationalServiceUrl</code></td><td>Servicio de red (CNELEPN/MapServer).</td></tr>
+            <tr><td><code>spatialReferenceWkid</code></td><td>Sistema de referencia del mapa (p. ej. 32717).</td></tr>
+            <tr><td><code>geometryServiceUrl</code></td><td>GeometryServer <b>on-prem</b> — evita depender de AGOL en reproyecciones.</td></tr>
+            <tr><td><code>visibleLayerIds</code></td><td>Capas encendidas al arrancar.</td></tr>
+            <tr><td><code>print.printServiceUrl</code></td><td>Servicio de impresión (GPServer) para generar PDF/PNG.</td></tr>
+            <tr><td><code>auth.arcgisServerSecured</code></td><td><code>true</code> si los servicios exigen token (activa el backend/token broker).</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="lead" style="margin-top:18px">Para <b>añadir una búsqueda</b>, agregue un objeto en <code>searches.json</code>; para cambiar el contenido de un <b>popup</b>, edite <code>popups.json</code>. En ambos casos basta recargar el navegador — sin recompilar.</p>
+    </section>
+
+    <!-- 04 INTERFACE -->
+    <section id="interfaz">
+      <div class="s-head"><span class="idx">04</span><div><h3>La interfaz</h3><p class="sub">Qué hay en pantalla. Los números remiten a la leyenda inferior.</p></div></div>
+
+      <div class="mock" role="img" aria-label="Representación de la interfaz del visor con sus zonas numeradas">
+        <div class="mock-bar">
+          <div class="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+          <span class="title">Visor de Redes Eléctricas — CNEL EP</span>
+          <div class="cnav">
+            <span class="callout" style="position:relative"><span class="marker">6</span></span>
+            <span class="pill">🌓 Oscuro</span><span class="pill">Salir</span>
+          </div>
+        </div>
+        <div class="mock-body">
+          <div class="mock-tools" aria-hidden="true">
+            <span class="callout" style="position:absolute; left:60px; margin-top:2px"><span class="marker">1</span></span>
+            <div class="t on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v7l-4-2v-5L3 4Z"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 8 3l13 13-5 5Z"/><path d="M7 7l2 2M11 5l1 1M9 11l2 2M13 9l1 1"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></div>
+          </div>
+          <div class="mock-map">
+            <span class="callout" style="left:44%; top:44%"><span class="marker">2</span></span>
+            <span class="callout" style="right:52px; top:14px"><span class="marker">3</span></span>
+            <span class="callout" style="left:44px; bottom:16px"><span class="marker">4</span></span>
+            <span class="callout" style="right:150px; bottom:18px"><span class="marker">5</span></span>
+            <div class="line" style="left:12%; top:60%; width:180px; transform:rotate(-18deg)"></div>
+            <div class="line" style="left:34%; top:38%; width:150px; transform:rotate(24deg)"></div>
+            <div class="line" style="left:52%; top:52%; width:120px; transform:rotate(-8deg)"></div>
+            <div class="node" style="left:11%; top:59%"></div>
+            <div class="node" style="left:33%; top:37%"></div>
+            <div class="node" style="left:63%; top:49%"></div>
+            <div class="mock-zoom"><b>+</b><b>−</b></div>
+            <div class="mock-locate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></div>
+            <div class="mock-coord">17M 620450 E · 9758300 N</div>
+            <div class="mock-sv"><div class="svbar">Street View · ✕</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="li"><span class="marker">1</span><div><b>Barra de herramientas</b><br><span>Un ícono por herramienta; al pulsarlo abre su panel a la derecha.</span></div></div>
+        <div class="li"><span class="marker">2</span><div><b>Mapa</b><br><span>Arrastre para desplazar; rueda del ratón para acercar/alejar.</span></div></div>
+        <div class="li"><span class="marker">3</span><div><b>Zoom y ubicación</b><br><span>Botones + / − y «ir a mi posición GPS».</span></div></div>
+        <div class="li"><span class="marker">4</span><div><b>Coordenadas</b><br><span>Posición del cursor en varios formatos.</span></div></div>
+        <div class="li"><span class="marker">5</span><div><b>Street View</b><br><span>Recuadro flotante, redimensionable y cerrable.</span></div></div>
+        <div class="li"><span class="marker">6</span><div><b>Barra superior</b><br><span>Usuario, cambio de tema claro/oscuro y salir.</span></div></div>
+      </div>
+
+      <div class="note tip"><svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c.5.5 1 1.5 1 3h6c0-1.5.5-2.5 1-3a7 7 0 0 0-4-12Z"/></svg><div>Solo hay <b>un panel abierto a la vez</b>: abrir otra herramienta cierra la anterior. El mapa y los popups siguen activos.</div></div>
+    </section>
+
+    <!-- 05 TOOLS -->
+    <section id="herramientas">
+      <div class="s-head"><span class="idx">05</span><div><h3>Herramientas</h3><p class="sub">Cada ícono de la barra izquierda abre uno de estos paneles.</p></div></div>
+      <div class="tools">
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span><div><h5>Buscar</h5><div class="rf">RF-SRC</div></div></div>
+          <ol><li>Elija el <b>tipo de búsqueda</b>.</li><li>Escriba el texto (parcial, sin distinguir mayúsculas).</li><li>Pulse <b>Buscar</b>; clic en un resultado → zoom, resalta y abre su popup.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg></span><div><h5>Capas y leyenda</h5><div class="rf">RF-LYR</div></div></div>
+          <ol><li>Casillas para <b>encender/apagar</b> capas.</li><li>Control de <b>opacidad</b> por capa.</li><li><b>Leyenda</b> con la simbología visible.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></span><div><h5>Mapa base</h5><div class="rf">§3.2</div></div></div>
+          <ol><li>Interruptor de <b>visibilidad</b> del mapa base.</li><li>Control de <b>opacidad</b>.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h18l-7 8v7l-4-2v-5L3 4Z"/></svg></span><div><h5>Filtros</h5><div class="rf">RF-FIL</div></div></div>
+          <ol><li>Elija el <b>filtro</b>; se aplica a <b>todas las capas</b> que tengan el campo (ALIMENTADORID y ALIMENTADOR en postes).</li><li>Busque y marque uno o varios <b>valores</b>.</li><li><b>Aplicar</b> filtra el mapa; un aviso arriba muestra el filtro activo con una <b>✕ para apagarlo</b>.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M3 14h18M9 4v16"/></svg></span><div><h5>Selección</h5><div class="rf">RF-SEL</div></div></div>
+          <ol><li>Modo <b>Clic</b>, <b>Rectángulo</b> o <b>Polígono</b>.</li><li>Los resultados salen en el <b>panel bajo el mapa</b>, agrupados por capa.</li><li><b>Marque casillas</b> → se resaltan en el mapa; clic en la fila navega a ella.</li><li><b>CSV</b> exporta con coordenadas; <b>Terminar</b> vuelve a identificar.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg></span><div><h5>Tabla de atributos</h5><div class="rf">RF-SEL-02</div></div></div>
+          <ol><li>Panel <b>acoplado bajo el mapa</b>, redimensionable, con dos pestañas.</li><li>Elija la <b>capa</b> y el alcance: <b>solo lo visible</b> o <b>ver todo</b>.</li><li>Filtre con una expresión SQL, p. ej. <code>ALIMENTADORID = 'A1'</code>.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span><div><h5>Dibujo</h5><div class="rf">RF-DRW</div></div></div>
+          <ol><li>Elija la forma y <b>dibuje</b> sobre el mapa.</li><li>Puede <b>mover, editar y borrar</b>.</li><li>No interfiere con la consulta ni la selección.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 8 3l13 13-5 5Z"/><path d="M7 7l2 2M11 5l1 1M9 11l2 2"/></svg></span><div><h5>Medición</h5><div class="rf">RF-MSR</div></div></div>
+          <ol><li><b>Distancia:</b> puntos sucesivos, doble clic para terminar.</li><li><b>Área:</b> dibuje un polígono.</li><li><b>Limpiar</b> borra el resultado.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></span><div><h5>Ir a XY / LatLong</h5><div class="rf">RF-GOTO</div></div></div>
+          <ol><li>Elija el <b>sistema de referencia</b> de entrada.</li><li>Escriba <b>X/Y</b> o <b>Lat/Long</b>.</li><li><b>Ir</b> centra y marca; Lat/Long se <b>reproyecta</b> solo.</li></ol>
+        </div>
+
+        <div class="tool">
+          <div class="tool-head"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg></span><div><h5>Imprimir</h5><div class="rf">RF-PRT</div></div></div>
+          <ol><li>Elija plantilla, formato (PDF/PNG/JPG), título y escala.</li><li>Genere el mapa con <b>simbología y leyenda</b>.</li><li>Descargue el archivo resultante.</li></ol>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 06 POPUPS -->
+    <section id="popups">
+      <div class="s-head"><span class="idx">06</span><div><h3>Identificar y Street View</h3><p class="sub">La información de cada elemento.</p></div></div>
+      <p class="lead">Al hacer clic sobre el mapa se <b>identifican todos los elementos bajo ese punto</b>, de todas las capas encendidas, en una sola ventana: use las flechas para recorrerlos y ver el poste, el transformador y la luminaria que coinciden en el mismo sitio. Cada uno indica de qué capa procede, muestra los atributos configurados, los <b>registros relacionados</b> y, si está habilitado, un botón <b>Street View</b>.</p>
+      <div class="cards" style="margin-top:16px">
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h5"/></svg></div><h5>Atributos y relacionados</h5><p>Campos con alias, orden y formato definidos en <code>popups.json</code>, más los registros vinculados.</p></div>
+        <div class="card"><div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg></div><h5>Street View</h5><p>Sin clave de Google se abre en una ventana emergente del navegador, y se reutiliza la misma al elegir otro punto. Un <b>muñeco</b> en el mapa marca la ubicación que se está viendo y desaparece al cerrarla.</p></div>
+      </div>
+    </section>
+
+    <!-- 07 TROUBLE -->
+    <section id="problemas">
+      <div class="s-head"><span class="idx">07</span><div><h3>Problemas frecuentes</h3><p class="sub">Diagnóstico rápido.</p></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr></thead>
+          <tbody>
+            <tr><td>Pantalla en blanco al navegar</td><td>Falta URL Rewrite o <code>web.config</code></td><td>Instale el módulo; verifique el archivo en la raíz.</td></tr>
+            <tr><td>«No se pudo iniciar el visor»</td><td>Un JSON de <code>config\</code> con error</td><td>Revise la sintaxis; abra <code>/config/app-config.json</code> en el navegador.</td></tr>
+            <tr><td>El mapa no aparece</td><td>URL de servicio incorrecta o CORS</td><td>Verifique URLs; habilite el origen o use el mismo dominio.</td></tr>
+            <tr><td>Zoom lento</td><td>Mapa base dinámico</td><td>Use caché teselada: <code>basemapType: "tiled"</code>.</td></tr>
+            <tr><td>Street View «no disponible»</td><td>Falta clave de Google o internet</td><td>Configure <code>VITE_GOOGLE_MAPS_KEY</code> y recompile.</td></tr>
+            <tr><td>No imprime</td><td>Sin servicio de impresión</td><td>Configure <code>print.printServiceUrl</code> de un GPServer válido.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Visor de Redes Eléctricas · CNEL EP — Manual generado a partir de la SRS v1.0. El tema sigue la preferencia de su navegador.</footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#toc a'));
+    var map = {};
+    links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+    var sections = links.map(function (a) { return document.getElementById(a.getAttribute('href').slice(1)); }).filter(Boolean);
+
+    function setActive(id) {
+      links.forEach(function (a) { a.classList.toggle('active', a === map[id]); });
+    }
+
+    if ('IntersectionObserver' in window) {
+      var visible = {};
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting ? e.intersectionRatio : 0; });
+        var best = null, bestRatio = 0;
+        sections.forEach(function (s) { var r = visible[s.id] || 0; if (r > bestRatio) { bestRatio = r; best = s.id; } });
+        if (best) setActive(best);
+      }, { rootMargin: '-15% 0px -70% 0px', threshold: [0, 0.25, 0.5, 1] });
+      sections.forEach(function (s) { obs.observe(s); });
+    }
+    if (sections[0]) setActive(sections[0].id);
+  })();
+</script>
+</body>
+</html>

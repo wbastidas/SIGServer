@@ -10,12 +10,14 @@ import {
 import { CalciteButton, CalciteSegmentedControl, CalciteSegmentedControlItem } from '@esri/calcite-components-react';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
+import { useI18n } from '@/i18n/useI18n';
 
 type Mode = 'distance' | 'area';
 
 export function MeasureTools() {
   const measureCfg = useConfigStore((s) => s.config?.app.measure);
   const view = useMapStore((s) => s.view);
+  const { t } = useI18n();
   const [mode, setMode] = useState<Mode>('distance');
   const distRef = useRef<any>(null);
   const areaRef = useRef<any>(null);
@@ -45,22 +47,20 @@ export function MeasureTools() {
         onCalciteSegmentedControlChange={(e: any) => setMode(e.target.value)}
       >
         <CalciteSegmentedControlItem value="distance" checked={mode === 'distance' || undefined}>
-          Distancia
+          {t('measure.distance')}
         </CalciteSegmentedControlItem>
         <CalciteSegmentedControlItem value="area" checked={mode === 'area' || undefined}>
-          Area
+          {t('measure.area')}
         </CalciteSegmentedControlItem>
       </CalciteSegmentedControl>
 
-      <div style={{ display: mode === 'distance' ? 'block' : 'none' }}>
-        <ArcgisDistanceMeasurement2d ref={distRef} />
-      </div>
-      <div style={{ display: mode === 'area' ? 'block' : 'none' }}>
-        <ArcgisAreaMeasurement2d ref={areaRef} />
-      </div>
+      {/* Solo se monta la herramienta activa: evita dos widgets de medicion
+          escuchando el mapa a la vez; cambiar de modo limpia la medicion previa. */}
+      {mode === 'distance' && <ArcgisDistanceMeasurement2d ref={distRef} />}
+      {mode === 'area' && <ArcgisAreaMeasurement2d ref={areaRef} />}
 
       <CalciteButton appearance="outline" kind="neutral" iconStart="trash" onClick={clear}>
-        Limpiar medicion
+        {t('measure.clear')}
       </CalciteButton>
     </div>
   );

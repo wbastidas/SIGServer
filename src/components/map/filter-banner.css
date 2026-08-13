@@ -1,0 +1,57 @@
+.filter-banner {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  /* Nunca debe crecer mas que la pantalla. */
+  max-width: min(680px, calc(100% - 7rem));
+  padding: 0.35rem 0.4rem 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: var(--calcite-color-foreground-1);
+  border: 1px solid var(--calcite-color-border-2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+  font-size: 0.8rem;
+  overflow: hidden;
+}
+
+.filter-banner .fb-icon {
+  display: inline-flex;
+  color: var(--calcite-color-brand);
+  flex: none;
+}
+
+.filter-banner .fb-label {
+  font-weight: 600;
+  white-space: nowrap;
+  flex: none;
+}
+
+.filter-banner .fb-values {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.filter-banner .fb-more,
+.filter-banner .fb-scope {
+  color: var(--calcite-color-text-3);
+  white-space: nowrap;
+  flex: none;
+}
+
+@media (max-width: 720px) {
+  .filter-banner {
+    max-width: calc(100% - 1.5rem);
+    font-size: 0.75rem;
+  }
+  /* En pantallas pequenas prima ver que hay filtro y poder quitarlo. */
+  .filter-banner .fb-scope {
+    display: none;
+  }
+}

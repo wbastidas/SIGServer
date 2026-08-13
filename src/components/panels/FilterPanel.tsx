@@ -1,180 +1,239 @@
 /**
- * Panel de filtros (RF-FIL-01..05). Filtra por un campo configurable (p. ej.
- * ALIMENTADORID). Soporta filtro individual y multiple (IN (...)). Aplica
- * definitionExpression a sublayers de MapImageLayer y featureEffect a FeatureLayer.
- * Capas/campos filtrables definidos en JSON (RF-FIL-05).
+ * Panel de filtros (RF-FIL-01..05).
+ *
+ * El filtro se define por CAMPO y se aplica a TODAS las capas que lo publiquen:
+ * el alimentador es `ALIMENTADORID` en la mayoria de capas y `ALIMENTADOR` solo
+ * en postes, y un unico filtro debe afectar a todas a la vez.
+ *
+ * El filtro activo se anuncia sobre el mapa (FilterBanner) para que se vea
+ * aunque este panel este cerrado, y se puede apagar desde ambos sitios.
  */
-import { useEffect, useMemo, useState } from 'react';
-import FeatureLayer from '@arcgis/core/layers/FeatureLayer';
-import MapImageLayer from '@arcgis/core/layers/MapImageLayer';
-import FeatureEffect from '@arcgis/core/layers/support/FeatureEffect';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CalciteButton,
   CalciteChip,
   CalciteChipGroup,
+  CalciteInputText,
   CalciteLabel,
   CalciteNotice,
   CalciteOption,
   CalciteSelect,
 } from '@esri/calcite-components-react';
 import type { FilterConfig } from '@/types/config';
+import {
+  applyFilter,
+  clearFilter,
+  collectFilterValues,
+  filterFields,
+  filterLabel,
+  resolveFilterTargets,
+  type FilterTarget,
+} from '@/services/filterService';
+import { getDomainMap, labelWithCode, type DomainMap } from '@/services/domainUtils';
 import { useConfigStore } from '@/store/useConfigStore';
 import { useMapStore } from '@/store/useMapStore';
+import { useFilterStore } from '@/store/useFilterStore';
+import { useI18n } from '@/i18n/useI18n';
+
+const MAX_CHIPS = 300;
 
 export function FilterPanel() {
   const filters = useConfigStore((s) => s.config?.app.filters ?? []);
-  const operationalUrl = useConfigStore((s) => s.config?.app.map.operationalServiceUrl);
   const map = useMapStore((s) => s.map);
+  const setActive = useFilterStore((s) => s.setActive);
+  const active = useFilterStore((s) => s.active);
+  const { t } = useI18n();
 
-  const [selectedFilterIdx, setSelectedFilterIdx] = useState(0);
+  const [index, setIndex] = useState(0);
+  const [targets, setTargets] = useState<FilterTarget[]>([]);
   const [values, setValues] = useState<string[]>([]);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [domain, setDomain] = useState<DomainMap>({ codeToName: new Map(), hasDomain: false });
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const filter = filters[selectedFilterIdx];
+  const filter: FilterConfig | undefined = filters[index];
+  const filterId = filter?.id ?? String(index);
 
-  // Carga los valores distintos del campo (RNF-PERF-03: limitado).
+  // Descubre las capas afectadas y sus valores.
   useEffect(() => {
-    if (!filter || !operationalUrl) return;
+    if (!filter || !map) return;
     let cancelled = false;
     setLoading(true);
     setError(null);
-    const fl = new FeatureLayer({ url: `${operationalUrl}/${filter.layerId}` });
-    fl.queryFeatures({
-      where: `${filter.field} IS NOT NULL`,
-      outFields: [filter.field],
-      returnDistinctValues: true,
-      returnGeometry: false,
-      orderByFields: [filter.field],
-      num: 1000,
-    })
-      .then((res) => {
+    setSearch('');
+    setValues([]);
+    setTargets([]);
+
+    (async () => {
+      try {
+        const found = await resolveFilterTargets(map, filter);
         if (cancelled) return;
-        const distinct = Array.from(
-          new Set(res.features.map((f) => String(f.attributes[filter.field])).filter(Boolean)),
-        );
-        setValues(distinct);
-      })
-      .catch((err) => !cancelled && setError((err as Error).message))
-      .finally(() => !cancelled && setLoading(false));
+        setTargets(found);
+
+        if (found.length === 0) {
+          setError(t('filter.noLayersWithField', { fields: filterFields(filter).join(', ') }));
+          return;
+        }
+
+        // El dominio se lee de la primera capa afectada: sirve para mostrar la
+        // descripcion en lugar del codigo.
+        getDomainMap(found[0].queryLayer, found[0].field)
+          .then((d) => !cancelled && setDomain(d))
+          .catch(() => undefined);
+
+        const distinct = await collectFilterValues(found);
+        if (!cancelled) setValues(distinct);
+      } catch (err) {
+        if (!cancelled) setError((err as Error).message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
     return () => {
       cancelled = true;
     };
-  }, [filter, operationalUrl]);
+  }, [filter, map, t]);
 
-  const whereClause = useMemo(() => {
-    if (!filter || selectedValues.length === 0) return '';
-    if (selectedValues.length === 1) {
-      return `${filter.field} = '${selectedValues[0].replace(/'/g, "''")}'`;
-    }
-    const list = selectedValues.map((v) => `'${v.replace(/'/g, "''")}'`).join(',');
-    return `${filter.field} IN (${list})`;
-  }, [filter, selectedValues]);
+  // Refleja el filtro ya activo al reabrir el panel.
+  useEffect(() => {
+    if (active?.id === filterId) setSelected(active.values);
+    else setSelected([]);
+  }, [active, filterId]);
 
-  function toggleValue(value: string) {
-    setSelectedValues((prev) => {
-      if (!filter?.allowMultiple) return prev.includes(value) ? [] : [value];
-      return prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value];
+  const shown = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const matching = term
+      ? values.filter((v) => labelWithCode(domain, v).toLowerCase().includes(term))
+      : values;
+    const missing = selected.filter((v) => !matching.includes(v));
+    return [...missing, ...matching];
+  }, [values, search, domain, selected]);
+
+  const toggleValue = useCallback(
+    (value: string) => {
+      setSelected((prev) => {
+        if (!filter?.allowMultiple) return prev.includes(value) ? [] : [value];
+        return prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value];
+      });
+    },
+    [filter],
+  );
+
+  function handleApply() {
+    if (!filter || targets.length === 0 || selected.length === 0) return;
+    applyFilter(targets, selected);
+    setActive({
+      id: filterId,
+      label: filterLabel(filter),
+      values: selected,
+      layerTitles: targets.map((x) => x.title),
     });
   }
 
-  function applyFilter() {
-    if (!filter || !map) return;
-    const where = whereClause;
-    // MapImageLayer -> definitionExpression por sublayer.
-    map.layers.forEach((layer: any) => {
-      if (layer instanceof MapImageLayer) {
-        const sub = layer.findSublayerById(filter.layerId);
-        if (sub) sub.definitionExpression = where;
-      } else if (layer instanceof FeatureLayer) {
-        const matchesLayer = layer.url?.endsWith(`/${filter.layerId}`);
-        if (matchesLayer) {
-          // featureEffect resalta lo incluido y atenua el resto (RF-FIL-03).
-          layer.featureEffect = where
-            ? new FeatureEffect({
-                filter: { where },
-                excludedEffect: 'grayscale(100%) opacity(30%)',
-                includedEffect: 'drop-shadow(0, 2px, 2px)',
-              })
-            : (null as any);
-        }
-      }
-    });
-  }
-
-  function clearFilter() {
-    if (!filter || !map) return;
-    setSelectedValues([]);
-    map.layers.forEach((layer: any) => {
-      if (layer instanceof MapImageLayer) {
-        const sub = layer.findSublayerById(filter.layerId);
-        if (sub) sub.definitionExpression = '';
-      } else if (layer instanceof FeatureLayer && layer.url?.endsWith(`/${filter.layerId}`)) {
-        layer.featureEffect = null as any;
-      }
-    });
+  function handleClear() {
+    clearFilter(targets);
+    setSelected([]);
+    useFilterStore.getState().clear();
   }
 
   if (filters.length === 0) {
-    return <p className="muted">No hay filtros configurados en app-config.json.</p>;
+    return <p className="muted">{t('filter.noConfig')}</p>;
   }
 
   return (
     <div className="panel-section">
       <CalciteLabel>
-        Capa / campo
+        {t('filter.layerField')}
         <CalciteSelect
-          label="Filtro"
-          value={String(selectedFilterIdx)}
-          onCalciteSelectChange={(e: any) => {
-            setSelectedFilterIdx(Number(e.target.value));
-            setSelectedValues([]);
-          }}
+          label={t('filter.layerField')}
+          value={String(index)}
+          onCalciteSelectChange={(e: any) => setIndex(Number(e.target.value))}
         >
-          {filters.map((f: FilterConfig, idx: number) => (
-            <CalciteOption key={idx} value={String(idx)}>
-              {f.label ?? f.field} (capa {f.layerId})
+          {filters.map((f, i) => (
+            <CalciteOption key={f.id ?? i} value={String(i)}>
+              {filterLabel(f)}
             </CalciteOption>
           ))}
         </CalciteSelect>
       </CalciteLabel>
 
+      {/* Alcance: que capas quedan afectadas por este filtro. */}
+      {targets.length > 0 && (
+        <p className="muted">
+          {t('filter.scope', { n: targets.length })}{' '}
+          <span title={targets.map((x) => `${x.title} (${x.field})`).join('\n')}>
+            {targets
+              .slice(0, 4)
+              .map((x) => x.title)
+              .join(', ')}
+            {targets.length > 4 ? '…' : ''}
+          </span>
+        </p>
+      )}
+
       <p className="muted">
-        {filter?.allowMultiple ? 'Seleccion multiple (IN)' : 'Seleccion individual'} ·{' '}
-        {loading ? 'cargando valores...' : `${values.length} valores`}
+        {filter?.allowMultiple ? t('filter.multiple') : t('filter.single')} ·{' '}
+        {loading ? t('filter.loadingValues') : t('filter.valuesCount', { n: values.length })}
       </p>
 
       {error && (
-        <CalciteNotice open kind="danger" icon scale="s">
+        <CalciteNotice open kind="warning" icon scale="s">
           <div slot="message">{error}</div>
         </CalciteNotice>
       )}
 
-      <CalciteChipGroup label="Valores">
-        {values.slice(0, 300).map((v) => (
+      <CalciteLabel>
+        {t('filter.searchValues')}
+        <CalciteInputText
+          value={search}
+          placeholder={t('filter.searchPlaceholder')}
+          clearable
+          onCalciteInputTextInput={(e: any) => setSearch(e.target.value)}
+        />
+      </CalciteLabel>
+
+      {!loading && shown.length === 0 && values.length > 0 && (
+        <p className="muted">{t('filter.noMatches')}</p>
+      )}
+
+      <CalciteChipGroup label={t('filter.values')}>
+        {shown.slice(0, MAX_CHIPS).map((v) => (
           <CalciteChip
             key={v}
             value={v}
-            selected={selectedValues.includes(v) || undefined}
+            selected={selected.includes(v) || undefined}
             scale="s"
+            title={v}
             onClick={() => toggleValue(v)}
           >
-            {v}
+            {labelWithCode(domain, v)}
           </CalciteChip>
         ))}
       </CalciteChipGroup>
 
+      {shown.length > MAX_CHIPS && (
+        <p className="muted">{t('filter.tooMany', { n: shown.length })}</p>
+      )}
+
       <div className="panel-actions">
         <CalciteButton
           iconStart="filter"
-          disabled={selectedValues.length === 0 || undefined}
-          onClick={applyFilter}
+          disabled={selected.length === 0 || targets.length === 0 || undefined}
+          onClick={handleApply}
         >
-          Aplicar
+          {t('common.apply')}
         </CalciteButton>
-        <CalciteButton appearance="outline" kind="neutral" iconStart="reset" onClick={clearFilter}>
-          Limpiar
+        <CalciteButton
+          appearance="outline"
+          kind="neutral"
+          iconStart="reset"
+          disabled={(!active && selected.length === 0) || undefined}
+          onClick={handleClear}
+        >
+          {t('filter.turnOff')}
         </CalciteButton>
       </div>
     </div>
